@@ -1,4 +1,4 @@
-use std::ptr::null;
+use std::{collections::HashSet, ptr::null};
 
 use clap::{App, Arg};
 use libc::*;
@@ -80,7 +80,13 @@ fn main() {
         let context = seccomp_init(SCMP_ACT_KILL);
 
         // load minimum rules which make sure the simplest code can run without problem
-        load_minimum_rules(context);
+        let rules: HashSet<&str> = cmd.values_of("permission").unwrap().map(|f|f.trim()).collect();
+        if rules.contains("minimum") {
+            load_minimum_rules(context);
+        }
+        if rules.contains("io") {
+            load_io_rules(context);
+        }
 
         // rule for execve allowing only being used by us
         let exe = path.to_str().unwrap().as_ptr() as *const i8;
@@ -163,6 +169,10 @@ unsafe fn load_minimum_rules(ctx: *mut c_void) {
     );
 }
 
+unsafe fn load_io_rules(ctx: *mut c_void) {
+    allow_syscall(ctx, vec![SYS_openat, SYS_open]);
+}
+
 fn set_memory_limit(lim: u64) {
     let ctx = rlimit64 {
         rlim_cur: lim << 10 << 10 << 1,
@@ -170,8 +180,7 @@ fn set_memory_limit(lim: u64) {
     };
     let ctx: *const rlimit64 = &ctx;
     unsafe {
-        assert!(setrlimit64(RLIMIT_AS, ctx)==0);
-
+        assert!(setrlimit64(RLIMIT_AS, ctx) == 0);
     }
 }
 fn set_time_limit(lim: u64) {
@@ -181,6 +190,6 @@ fn set_time_limit(lim: u64) {
     };
     let ctx: *const rlimit64 = &ctx;
     unsafe {
-        assert!(setrlimit64(RLIMIT_CPU, ctx)==0);
+        assert!(setrlimit64(RLIMIT_CPU, ctx) == 0);
     }
 }
