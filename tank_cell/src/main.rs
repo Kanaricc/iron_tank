@@ -50,7 +50,7 @@ fn main() {
     // check if path exists
     let path = Path::new(cmd.value_of("path").unwrap());
     if !path.exists() {
-        println!("path does not exists");
+        println!("cell: path does not exists");
         std::process::exit(1);
     }
     let file_name = path.file_name().unwrap().to_str().unwrap();
@@ -168,10 +168,10 @@ fn set_memory_limit(lim: u64) {
         rlim_cur: lim << 10 << 10 << 1,
         rlim_max: lim << 10 << 10 << 1,
     };
-    println!("mem lim={:?}", ctx.rlim_max);
     let ctx: *const rlimit64 = &ctx;
     unsafe {
-        println!("{}", setrlimit64(RLIMIT_AS, ctx));
+        assert!(setrlimit64(RLIMIT_AS, ctx)==0);
+
     }
 }
 fn set_time_limit(lim: u64) {
@@ -179,9 +179,8 @@ fn set_time_limit(lim: u64) {
         rlim_cur: (lim + 1000) / 1000,
         rlim_max: (lim + 1000) / 1000,
     };
-    println!("time lim={:?}", ctx.rlim_max);
     let ctx: *const rlimit64 = &ctx;
     unsafe {
-        println!("{}", setrlimit64(RLIMIT_CPU, ctx));
+        assert!(setrlimit64(RLIMIT_CPU, ctx)==0);
     }
 }
