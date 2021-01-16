@@ -18,6 +18,7 @@ impl ProcessProbe {
         Ok(Self { pid })
     }
 
+    #[allow(dead_code)]
     pub fn get_stat(&self) -> ProcessStat {
         let content1 = fs::read_to_string(format!("/proc/{}/stat", self.pid)).unwrap();
         let content1: Vec<&str> = content1.trim().split(" ").map(|f| f.trim()).collect();
@@ -52,12 +53,14 @@ impl ProcessProbe {
     }
 
     /// Get the current cpu time usage, user and system
+    #[allow(dead_code)]
     fn get_cpu_usage(&self) -> u64 {
         let t = self.get_stat();
         t.utime + t.stime
     }
 
     /// Get the current memory usage based on resident set memory size
+    #[allow(dead_code)]
     fn get_memory_usage(&self) -> u64 {
         self.get_stat().rss
     }
