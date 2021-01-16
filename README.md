@@ -2,7 +2,7 @@
 
 Iron Tank is a fast and reliable judge written in Rust.
 
-> Judge is a program which is commonly used in XCPC, OI and other programming contest to check if the competitors's solution code is correct or not by supervising the whole running process of it, for example, time and memory usage, and comparing the final result it outputs with the predefined answer.
+> Judge is a program which is commonly used in XCPC, OI and other programming contest to check if the competitors' solution code is correct or not by supervising the whole running process, for example, time and memory usage, and comparing the final result it outputs with the predefined answer.
 
 ## Install
 
