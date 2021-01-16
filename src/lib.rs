@@ -9,6 +9,8 @@ pub struct JudgeResult {
     pub status: JudgeStatus,
     pub time: u64,
     pub memory: u64,
+    pub stdout:String,
+    pub stderr:String,
 }
 
 #[derive(Debug)]

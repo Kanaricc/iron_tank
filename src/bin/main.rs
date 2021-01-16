@@ -10,6 +10,7 @@ use std::{fs, io::Read, io::Write, path::Path};
 #[derive(Clap)]
 #[clap(
     version = "0.1.1",
+    name = "Iron Tank",
     author = "Kanari <iovo7c@gmail.com>",
     about = "A fast and reliable judge container wrtten in Rust."
 )]
@@ -20,7 +21,7 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
-    #[clap(version = "0.1.0", about = "Normal mode")]
+    #[clap(version = "0.1.0", about = "Judge in normal mode")]
     Normal(NormalJudge),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
@@ -28,16 +29,21 @@ enum SubCommand {
 
 #[derive(Clap, Debug)]
 struct NormalJudge {
+    #[clap(about = "path of program to run")]
     exec: String,
-    #[clap(short)]
+    #[clap(short, about = "input file path")]
     input_file: String,
-    #[clap(short)]
+    #[clap(short, about = "answer file path")]
     answer_file: String,
-    #[clap(short)]
+    #[clap(short, default_value = "1024", about = "memory limit(MB)")]
     memory_limit: u64,
-    #[clap(short)]
+    #[clap(short, default_value = "30000", about = "time limit(MS)")]
     time_limit: u64,
-    #[clap(short)]
+    #[clap(
+        short,
+        default_value = "line",
+        about = "compare method: full, line, value.\nrefer to document for more details."
+    )]
     compare_method: String,
 }
 
@@ -74,6 +80,7 @@ fn main() -> Result<()> {
                 .arg("-p minimum")
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
                 .spawn()
                 .unwrap();
 
@@ -92,16 +99,28 @@ fn main() -> Result<()> {
                 .stdout
                 .as_mut()
                 .expect("stage2: failed to open stdout");
-
+            let cerr = command
+                .stderr
+                .as_mut()
+                .expect("stage2: failed to open stderr");
             let probe_res = probe.watching();
+
             let mut output = String::new();
             cout.read_to_string(&mut output)
                 .expect("stage3: failed to read stdout");
+            let mut errout = String::new();
+            cerr.read_to_string(&mut errout)
+                .expect("stage3: failed to read stderr");
 
             // check result
             let mut judge_status = if probe_res.get_time_usage() >= config.time_limit {
                 JudgeStatus::TimeLimitExceeded
             } else if probe_res.get_peak_memory() >= config.memory_limit * 1024 {
+                JudgeStatus::MemoryLimitExceeded
+            } else if errout.find("bad_alloc").is_some() {
+                // fix: struct like vector which does not allocate memory gradually
+                // may touch the wall when memory is still below the limit
+                // even we give two times more of it.
                 JudgeStatus::MemoryLimitExceeded
             } else if probe_res.get_status() != 0 {
                 JudgeStatus::RuntimeError
@@ -129,6 +148,8 @@ fn main() -> Result<()> {
                 status: judge_status,
                 time: probe_res.get_time_usage(),
                 memory: probe_res.get_peak_memory(),
+                stdout: output,
+                stderr: errout,
             };
 
             println!("{:#?}", judge_result);
