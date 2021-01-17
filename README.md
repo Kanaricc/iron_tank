@@ -26,14 +26,16 @@ Does not support Windows.
 
 ## Usage
 
-## Normal Mode
+### Server Mode
 
-Iron Tank supports `normal` mode now.
+By starting Iron Tank in server mode, you get a judge backend. (WIP)
+
+### Normal Mode
 
 * Input and answer are readed from file.
 * Program io use standard io stream.
 * Program should only use limited memory and exit in limited time, or it will be killed.
-* Program are granted ONLY basic permission such as allocating memory, reading standard stream and some system-related operations.
+* Program are granted ONLY basic permissions such as allocating memory, reading standard stream and some system-related operations.
 
 This is the common and useful mode for most situation.
 
@@ -50,13 +52,13 @@ $ iron_tank normal <exec> -i <input> -a <answer> -t <time-limit> -m <memory-limi
 * `<memory-limit>`, memory limit(MB) for program.
 * `<compare-mode>`, define the approach to compare the output and answer.
 
-Just for example. The command below will start a "container", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content in `1.ans` line by line.
+Just for example. The command below will start a "cell", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content in `1.ans` line by line.
 
 ```
 $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 ```
 
-### Comparation Mode
+#### Comparation Mode
 
 `full`. Output must be the absolutely same with Answer, including blank characters.
 
@@ -104,11 +106,55 @@ ab d
 
 Status `PE` may appear when comparation mode is set to the first or second one.
 
+### Speical Mode (Speical Judge)
+
+* Input is readed from file.
+* A user-defined checker is used to check if program gives correct output.
+
+This mode is used when
+
+* There are many possible correct answers.
+* Output should be checked in real-time.
+* Other situation that normal mode cannot fit.
+
+Command pattern:
+
+```bash
+$ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-limit>
+```
+
+* `<exec>`, the path of program to be run.
+* `<input>`, the input file for program.
+* `<checker>`, the path of checker
+* `<time-limit>`, time limit(MS) for program.
+* `<memory-limit>`, memory limit(MB) for program.
+
+#### Checker
+
+A checker will receive input, output of the program, and give the result of comparation.
+
+Two arguments are provided for you:
+
+* input file, which is the same as the one for program.
+* output file, containing the output of program.
+
+Checker should give output in pattern:
+
+```
+<result>
+<msg>
+```
+
+* `<result>`: same, different, pattern_different. An unexpected result will lead to Error.
+* `<msg>`: whatever you want.
+
+For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker crashing downs the whole judge process too.
+
 ## Details
 
 ### Time and Memory Limits
 
-In fact, the real limits of time and memory are two times higher than values you set. That means a program can still run and exit normally even it has allocated more memory and used more cpu time than limit you set.
+In fact, the real limits of time and memory are *two times* higher than values you set. That means a program can still run and exit normally even it has allocated more memory and used more cpu time than limit you set.
 
 Iron Tank will give `TLE` when the time usage is longer than limit.
 
