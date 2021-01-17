@@ -17,14 +17,14 @@ impl Into<JudgeStatus> for CompareResult{
 }
 
 pub trait CompareMode {
-    fn compare(str1: &String, str2: &String) -> CompareResult;
+    fn compare(&self,str1: &String, str2: &String) -> CompareResult;
 }
 
 pub struct GlobalCompare;
 
 impl CompareMode for GlobalCompare {
-    fn compare(str1: &String, str2: &String) -> CompareResult {
-        let value_res=ValueCompare::strict_compare(str1, str2);
+    fn compare(&self,str1: &String, str2: &String) -> CompareResult {
+        let value_res=ValueCompare{}.strict_compare(str1, str2);
 
         if str1 == str2 {
             CompareResult::Same
@@ -37,8 +37,8 @@ impl CompareMode for GlobalCompare {
 pub struct LineCompare;
 
 impl CompareMode for LineCompare {
-    fn compare(str1: &String, str2: &String) -> CompareResult {
-        let value_res=ValueCompare::strict_compare(str1, str2);
+    fn compare(&self,str1: &String, str2: &String) -> CompareResult {
+        let value_res=ValueCompare{}.strict_compare(str1, str2);
 
         let str1 = str1.trim();
         let str2 = str2.trim();
@@ -62,11 +62,11 @@ impl CompareMode for LineCompare {
 pub struct ValueCompare;
 
 impl ValueCompare{
-    fn strict_compare(str1:&String,str2:&String)->CompareResult{
+    fn strict_compare(&self,str1:&String,str2:&String)->CompareResult{
         if str1==str2{
             return CompareResult::Same;
         }else{
-            match Self::compare(str1, str2) {
+            match self.compare(str1, str2) {
                 CompareResult::Same => CompareResult::PatternDifferent,
                 CompareResult::Different => CompareResult::Different,
                 _ => unreachable!(),
@@ -76,7 +76,7 @@ impl ValueCompare{
 }
 
 impl CompareMode for ValueCompare {
-    fn compare(str1: &String, str2: &String) -> CompareResult {
+    fn compare(&self,str1: &String, str2: &String) -> CompareResult {
         let str1 = str1.replace("\n", "").replace(" ", "");
         let str2 = str2.replace("\n", "").replace(" ", "");
 
