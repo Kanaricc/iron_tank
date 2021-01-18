@@ -1,5 +1,2 @@
 /target
-normal.cpp
-normal
-*.txt
-*.log
+test_dep

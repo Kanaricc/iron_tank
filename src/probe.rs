@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn get_stat() {
         let probe = ProcessProbe::new(process::id()).unwrap();
-        assert!(probe.pid == process::id());
+        assert_eq!(probe.pid,process::id());
     }
 
     #[test]

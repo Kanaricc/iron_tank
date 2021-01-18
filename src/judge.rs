@@ -74,6 +74,7 @@ impl Judge for NormalJudge {
             "failed to open stdin",
         ))?;
         cin.write_all(self.input.into_bytes().as_slice())?;
+        cin.flush()?;
 
         let cout = command.stdout.as_mut().ok_or(std::io::Error::new(
             std::io::ErrorKind::BrokenPipe,
@@ -177,6 +178,7 @@ impl Judge for SpecialJudge {
             "failed to open stdin",
         ))?;
         cin.write_all(self.input.as_bytes())?;
+        cin.flush()?;
 
         let cout = command.stdout.as_mut().ok_or(std::io::Error::new(
             std::io::ErrorKind::BrokenPipe,
@@ -248,5 +250,102 @@ impl Judge for SpecialJudge {
             stderr: errout,
         };
         Ok(judge_result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::compare::ValueCompare;
+
+    #[test]
+    fn normal_accept() -> Result<()> {
+        // TODO: input with no backspace at end may cause the program waiting for input forever
+        let judge = NormalJudge::new(
+            "./test_dep/times2".into(),
+            "12\n".into(),
+            "24".into(),
+            256,
+            30,
+            Box::new(ValueCompare {}),
+        );
+
+        let result = judge.judge()?;
+
+        assert!(matches!(result.status, JudgeStatus::Accept));
+        assert!(result.time > 0 && result.time <= 30 * 1000);
+        assert!(result.memory > 0 && result.memory <= 256 * 1024);
+
+        Ok(())
+    }
+
+    #[test]
+    fn normal_wrong_answer()->Result<()>{
+        println!("trying testing correct code");
+        let judge = NormalJudge::new(
+            "./test_dep/times2".into(),
+            "12\n".into(),
+            "surprise!".into(),
+            256,
+            30,
+            Box::new(ValueCompare {}),
+        );
+
+        let result = judge.judge()?;
+
+        assert!(matches!(result.status, JudgeStatus::WrongAnswer));
+
+        Ok(())
+    }
+
+    #[test]
+    fn normal_time_limit_exceeded()->Result<()>{
+        let judge = NormalJudge::new(
+            "./test_dep/tle".into(),
+            "".into(),
+            "".into(),
+            256,
+            1000,
+            Box::new(ValueCompare {}),
+        );
+
+        let result = judge.judge()?;
+
+        assert!(result.time>1000);
+        debug_assert!(matches!(result.status,JudgeStatus::TimeLimitExceeded));
+        Ok(())
+    }
+
+    #[test]
+    fn normal_memory_limit_exceeded()->Result<()>{
+        let judge = NormalJudge::new(
+            "./test_dep/mle".into(),
+            "".into(),
+            "".into(),
+            256,
+            1000,
+            Box::new(ValueCompare {}),
+        );
+
+        let result = judge.judge()?;
+
+        assert!(matches!(result.status,JudgeStatus::MemoryLimitExceeded));
+        assert!(result.memory>256*1024);
+        Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn normal_invalid_path(){
+        let judge = NormalJudge::new(
+            "./test_dep/whatever".into(),
+            "".into(),
+            "".into(),
+            256,
+            1000,
+            Box::new(ValueCompare {}),
+        );
+
+        judge.judge().unwrap();
     }
 }
