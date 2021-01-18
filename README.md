@@ -1,4 +1,4 @@
-# Iron Tank
+# Iron Tank (WIP)
 
 Iron Tank is a fast and reliable judge written in Rust.
 
@@ -81,30 +81,37 @@ pub enum JudgeStatus {
 
 * `full`. Output must be the absolutely same with Answer, including blank characters.
 
-They are different.
+They are the same.
 
 ```
-a b
+I Can EatGlass
 
 ```
 
 ```
-a b
+I Can EatGlass
+
 ```
 
 * `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparation are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
 
-They are the same. Attention that there are some blank chars appended to `b` in latter one.
+They are the same. Attention that there are some blank chars after `b` in latter one, and the empty space between `d` and `我能` cannot be ignored.
 
 ```
 a b
 d
+
+我能
+吞下玻璃而不伤身体
 ```
 
 ```
 
 a b   
 d
+
+我能
+吞下玻璃而不伤身体
 
 ```
 
@@ -113,14 +120,14 @@ d
 They are the same.
 
 ```
-a b
-d
+PHP
+is
+the best language
 ```
 
 ```
-
-ab d
-
+PHPisthebest
+language
 ```
 
 Status `PE` may appear when comparation mode is set to the first or second one.
@@ -182,13 +189,22 @@ Iron Tank will give `TLE` when the time usage is longer than limit.
 
 Will give `MLE` when
 
-* Program is killed by cell, and the peak memory usage is overflow.
+* Program is killed by cell, and the peak memory usage overflow.
 * Program is killed by cell, and it exits with error message caused by memory allocation.
-* Program exits normally, but the peak memory usage is overflow.
+* Program exits normally, but the peak memory usage overflow.
 
-## Data Format
+There is a possible existing problem that a program has not touched the limit unless the next allocation in future were done. Once such a allocation is put up with, program will be killed immediately. Since vary languages and compilers act differently, this situation has not been all covered now. That means a program may be killed, leaving result to be *Runtime Error* while it is actually *Memory Limit Exceeded*.
 
-**Be careful for input file format.** Error caused by *invalid* input is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result.
+> I have encountered this problem on some Online Judge platforms (won't specify them here). Hope it can be solved by the development of this repo.
+
+### Data Format
+
+**Be careful for data format.** Error caused by *invalid* data is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result leaving everything seems to be no problems.
 
 * **Use ASCII or UTF-8 for all data, including file and checker's output.**
 * **Input should ends with a new empty line, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
+* **Fully test your data.** Though it is none of bussiness of Judge.
+
+### A program luckily uses both too much time and memory...
+
+`TLE` is concerned first.
