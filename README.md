@@ -26,11 +26,11 @@ Does not support Windows.
 
 ## Usage
 
-### Server Mode
+### Server
 
 By starting Iron Tank in server mode, you get a judge backend. (WIP)
 
-### Normal Mode
+### Normal
 
 * Input and answer are readed from file.
 * Program io use standard io stream.
@@ -56,6 +56,25 @@ Just for example. The command below will start a "cell", in which program can on
 
 ```
 $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
+```
+
+#### Judge Result
+
+**(WIP)**
+
+8 kinds of result are provided for now.
+
+```rust
+pub enum JudgeStatus {
+    Uncertain,
+    Accept,
+    WrongAnswer,
+    PatternError,
+    MemoryLimitExceeded,
+    TimeLimitExceeded,
+    ComplierLimitExceeded,
+    RuntimeError,
+}
 ```
 
 #### Comparation Mode
@@ -106,7 +125,7 @@ ab d
 
 Status `PE` may appear when comparation mode is set to the first or second one.
 
-### Speical Mode (Speical Judge)
+### Speical (Speical Judge)
 
 * Input is readed from file.
 * A user-defined checker is used to check if program gives correct output.
@@ -135,6 +154,7 @@ A checker will receive input, output of the program, and give the result of comp
 
 Two arguments are provided for you:
 
+* ~~source code file~~
 * input file, which is the same as the one for program.
 * output file, containing the output of program.
 
@@ -145,8 +165,10 @@ Checker should give output in pattern:
 <msg>
 ```
 
-* `<result>`: same, different, pattern_different. An unexpected result will lead to Error.
+* `<result>`: same -> Accepted, different -> WrongAnswer, pattern_different -> PatternError.
 * `<msg>`: whatever you want.
+
+MLE, TLE, RE, and other kinds of status are still given by Iron Tank.
 
 For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker's crashing downs the whole judge process too.
 
@@ -163,3 +185,10 @@ Will give `MLE` when
 * Program is killed by cell, and the peak memory usage is overflow.
 * Program is killed by cell, and it exits with error message caused by memory allocation.
 * Program exits normally, but the peak memory usage is overflow.
+
+## Data Format
+
+**Be careful for input file format.** Error caused by *invalid* input is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result.
+
+* **Use ASCII or UTF-8 for all data, including file and checker's output.**
+* **Input should ends with a backspace, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a backspace is entered. Missing last backspace will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
