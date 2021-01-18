@@ -191,4 +191,4 @@ Will give `MLE` when
 **Be careful for input file format.** Error caused by *invalid* input is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result.
 
 * **Use ASCII or UTF-8 for all data, including file and checker's output.**
-* **Input should ends with a backspace, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a backspace is entered. Missing last backspace will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
+* **Input should ends with a new empty line, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
