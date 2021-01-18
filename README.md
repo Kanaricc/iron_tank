@@ -6,7 +6,7 @@ Iron Tank is a fast and reliable judge written in Rust.
 
 ## Install
 
-Iron Tank relies on the features that Linux supports at present. I have only tested it on Linux. Not sure it will work on OS X, FreeBSD or not.
+Iron Tank relies on the features that Linux supports at present. I have only tested it on Linux. Not sure will it work on OS X, FreeBSD or not.
 
 Does not support Windows.
 
@@ -60,7 +60,7 @@ $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 
 #### Comparation Mode
 
-`full`. Output must be the absolutely same with Answer, including blank characters.
+* `full`. Output must be the absolutely same with Answer, including blank characters.
 
 They are different.
 
@@ -73,7 +73,7 @@ a b
 a b
 ```
 
-`line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparation are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
+* `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparation are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
 
 They are the same. Attention that there are some blank chars appended to `b` in latter one.
 
@@ -89,7 +89,7 @@ d
 
 ```
 
-`value`. Output and Answer are compared without any blank chars.
+* `value`. Output and Answer are compared without any blank chars.
 
 They are the same.
 
@@ -148,7 +148,7 @@ Checker should give output in pattern:
 * `<result>`: same, different, pattern_different. An unexpected result will lead to Error.
 * `<msg>`: whatever you want.
 
-For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker crashing downs the whole judge process too.
+For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker's crashing downs the whole judge process too.
 
 ## Details
 
