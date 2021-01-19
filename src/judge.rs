@@ -5,6 +5,9 @@ use std::{
     process::{Command, Stdio},
 };
 
+use regex::Regex;
+use reqwest::{blocking::multipart::Form, blocking::Client};
+
 use crate::{
     compare::CompareMode,
     error::{Error, Result},
@@ -14,6 +17,19 @@ use crate::{
 
 pub trait Judge {
     fn judge(self) -> Result<JudgeResult>;
+}
+
+pub trait RemoteJudge {
+    fn get_name(&self) -> String;
+    fn prepare(&mut self) -> Result<()>;
+    fn judge(self) -> Result<JudgeResult>;
+
+    fn make_error(&self,msg:&str)->Error{
+        Error::Judge{
+            judge_name:self.get_name(),
+            msg:msg.into(),
+        }
+    }
 }
 
 pub struct NormalJudge {
@@ -252,6 +268,87 @@ impl Judge for SpecialJudge {
         Ok(judge_result)
     }
 }
+struct OpentrainsJudge {
+    username: String,
+    password: String,
+    sid: Option<String>,
+    contest_id: u32,
+    problem_id: u32,
+    language_id: u32,
+    src: String,
+
+    client: Client,
+}
+
+impl OpentrainsJudge {
+    pub fn new(
+        username: String,
+        password: String,
+        contest_id: u32,
+        problem_id: u32,
+        language_id: u32,
+        src: String,
+    ) -> Self {
+        Self {
+            username,
+            password,
+            contest_id,
+            problem_id,
+            language_id,
+            src,
+            sid: None,
+            client: Client::new(),
+        }
+    }
+}
+
+impl RemoteJudge for OpentrainsJudge {
+    
+    fn prepare(&mut self) -> Result<()> {
+        let form = Form::new()
+            .text("login", self.username.clone())
+            .text("password", self.password.clone())
+            .text("locale_id", "0".to_string())
+            .text("submit", "Log in".to_string());
+
+        let res = self
+            .client
+            .post(&format!(
+                "http://opentrains.snarknews.info/~ejudge/team.cgi?contest_id={}",
+                self.contest_id
+            ))
+            .multipart(form)
+            .send()?;
+
+        let res = res.text()?;
+
+        let rgx = Regex::new(r#"SID="(\d+)""#).unwrap();
+
+        let res = match rgx.captures(&res) {
+            Some(x) => x,
+            None => {
+                return Err(self.make_error("Failed to login."));
+            }
+        };
+        let sid = res.get(1).unwrap().as_str();
+        self.sid = Some(sid.to_string());
+
+        Ok(())
+    }
+
+    fn judge(self) -> Result<JudgeResult> {
+        if let None = self.sid {
+            return Err(self.make_error("No session set. Please login first."));
+        }
+        let sid = self.sid.unwrap();
+
+        todo!()
+    }
+
+    fn get_name(&self) -> String {
+        "Opentrains Judge".into()
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -280,7 +377,7 @@ mod tests {
     }
 
     #[test]
-    fn normal_wrong_answer()->Result<()>{
+    fn normal_wrong_answer() -> Result<()> {
         println!("trying testing correct code");
         let judge = NormalJudge::new(
             "./test_dep/times2".into(),
@@ -299,7 +396,7 @@ mod tests {
     }
 
     #[test]
-    fn normal_time_limit_exceeded()->Result<()>{
+    fn normal_time_limit_exceeded() -> Result<()> {
         let judge = NormalJudge::new(
             "./test_dep/tle".into(),
             "".into(),
@@ -311,13 +408,13 @@ mod tests {
 
         let result = judge.judge()?;
 
-        assert!(result.time>1000);
-        debug_assert!(matches!(result.status,JudgeStatus::TimeLimitExceeded));
+        assert!(result.time > 1000);
+        debug_assert!(matches!(result.status, JudgeStatus::TimeLimitExceeded));
         Ok(())
     }
 
     #[test]
-    fn normal_memory_limit_exceeded()->Result<()>{
+    fn normal_memory_limit_exceeded() -> Result<()> {
         let judge = NormalJudge::new(
             "./test_dep/mle".into(),
             "".into(),
@@ -329,14 +426,14 @@ mod tests {
 
         let result = judge.judge()?;
 
-        assert!(matches!(result.status,JudgeStatus::MemoryLimitExceeded));
-        assert!(result.memory>256*1024);
+        assert!(matches!(result.status, JudgeStatus::MemoryLimitExceeded));
+        assert!(result.memory > 256 * 1024);
         Ok(())
     }
 
     #[test]
     #[should_panic]
-    fn normal_invalid_path(){
+    fn normal_invalid_path() {
         let judge = NormalJudge::new(
             "./test_dep/whatever".into(),
             "".into(),
@@ -347,5 +444,16 @@ mod tests {
         );
 
         judge.judge().unwrap();
+    }
+
+    #[test]
+    fn opentrains_judge() -> Result<()> {
+        let mut judge =
+            OpentrainsJudge::new("username".into(), "password".into(), 1, 1, 1, "src".into());
+        judge.prepare()?;
+
+        let _result=judge.judge()?;
+
+        Ok(())
     }
 }
