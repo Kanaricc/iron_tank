@@ -4,6 +4,7 @@ pub mod compare;
 pub mod error;
 pub mod probe;
 pub mod judge;
+pub mod remote_judge;
 
 #[derive(Debug)]
 pub struct JudgeResult {
