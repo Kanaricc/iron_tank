@@ -159,7 +159,7 @@ $ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-li
 
 A checker will receive input, output of the program, and give the result of comparation.
 
-Two arguments are provided for you:
+Two arguments are provided for the checker passing by `argv`:
 
 * ~~source code file~~
 * input file, which is the same as the one for program.
@@ -178,6 +178,31 @@ Checker should give output in pattern:
 MLE, TLE, RE, and other kinds of status are still given by Iron Tank.
 
 For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker's crashing downs the whole judge process too.
+
+A checker sample:
+
+```cpp
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+int main(int argc,char* argv[]){
+    ifstream input(argv[1]);
+    ifstream output(argv[2]);
+
+    string s1, s2;
+    input >> s1;
+    output >> s2;
+
+    if(s1 == s2) {
+        cout << "same" << endl << "" << endl;
+    } else {
+        cout << "different" << endl << "" << endl;
+    }
+
+    return 0;
+}
+```
 
 ## Details
 
