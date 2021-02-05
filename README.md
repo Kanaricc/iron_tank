@@ -1,68 +1,72 @@
 # Iron Tank (WIP)
 
-Iron Tank is a fast and reliable judge written in Rust.
+[English](./README.en.md)
 
-> Judge is a program used commonly in ICPC, CCPC, OI and other programming contests to check if the competitors' solution code is correct or not by supervising the whole running process, for example, time and memory usage, and comparing the final result it outputs with the predefined answer.
+Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器。
 
-## Install
+> 所谓评测器，是一种常用于 ICPC、CCPC 等程序设计竞赛中的特殊程序，用于检查比赛选手的代码是否正确（通常情况下将代码视作黑箱，给予输入并对比输出与答案是否相符），并限制和记录代码运行全程中的时间、内存使用情况。
 
-Iron Tank relies on the features that Linux supports at present. I have only tested it on Linux. Not sure will it work on OS X, FreeBSD or not.
+## 安装
 
-Does not support Windows.
+目前，Iron Tank 依赖于 Linux 的一些特性。我并不清楚它能不能在 OS X 或者 FreeBSD 等系统上正常运行。
 
-### Install From Pre-builded Version
+**暂不支持 Windows**。
 
-1. Download the newest version from release page,  `iron_tank` and `iron_cell`.
-2. Put the executable file you just downloaded in one same folder.
-3. Done.
+### 从预编译版本安装
 
-### Install From Source
+1. 从发布页面下载最新的 `iron_tank` 以及 `iron_cell`。
+2. 将二者放在同一个文件夹下。
+3. 如果必要的话，配置你所需要的 `PATH` 环境。
+4. 完成。
 
-1. Install Rust toolchain using `Rustup`.
-2. Clone the repo.
-3. Run command `cargo build --release` in the root directory.
-4. Look for path `target/release` to find `iron_tank` and `iron_cell`.
-5. Jump to the step 2 in **Install From Pre-builded Version**.
+### 从源码安装
 
-## Usage
+1. 安装 Rust 工具链管理工具 Rustup。
+2. Clone 这个项目。
+3. 在项目下运行命令 `cargo build --release`。
+4. 从目录 `target/release` 下寻找 `iron_tank` 以及 `iron_cell`。
+5. 回到**从预编译版本安装**的第 2 步。
 
-### Server
+## 使用
 
-By starting Iron Tank in server mode, you get a judge backend. (WIP)
+### 服务模式
 
-### Normal
+启动服务模式，在该模式下你将得到一个功能完备的评测后端。（WIP）
 
-* Input and answer are readed from file.
-* Program io use standard io stream.
-* Program should only use limited memory and exit in limited time, or it will be killed.
-* Program are granted ONLY basic permissions such as allocating memory, reading standard stream and some system-related operations.
+### 标准评测模式
 
-This is the common and useful mode for most situation.
+* 输入和答案通过文件给出。
+* 被评测代码从标准 IO 中读取和输出数据。
+* 被评测代码必须在受限制的内存和时间内得到结果，否则将被杀死。
+* 被评测代码只能使用最基本的权限，例如申请内存、读取标准流以及其他必要的基本操作。读写额外文件、网络连接等非正常操作均被禁止。
 
-Command pattern:
+这是最普通且常用的模式。
+
+命令格式：
 
 ```bash
 $ iron_tank normal <exec> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
 ```
 
-* `<exec>`, the path of program to be run.
-* `<input>`, the input file for program.
-* `<answer>`, the answer file.
-* `<time-limit>`, time limit(MS) for program.
-* `<memory-limit>`, memory limit(MB) for program.
-* `<compare-mode>`, define the approach to compare the output and answer.
+* `<exec>`, 将被运行的用户程序。（目前，你需要事先编译）
+* `<input>`, 样例输入文件。
+* `<answer>`, 样例答案文件。
+* `<time-limit>`, 时间限制。（MS）
+* `<memory-limit>`, 内存限制。（MB）
+* `<compare-mode>`, 输出的比较模式。
 
-Just for example. The command below will start a "cell", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content in `1.ans` line by line.
+举个例子。下方的命令将会启动一个评测单元，程序只能使用最多*大约* 256MB 的内存，且必须在*大约* 1秒内得到结果并正常退出。程序只能操作标准 IO，无法自行读写任何文件、连接网络、创建线程等。程序输出到标准 IO 的输出将会和 `1.ans` 按照**行模式**进行对比。
+
 
 ```
 $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 ```
 
-#### Judge Result
+#### 评测结果
 
 **(WIP)**
 
-8 kinds of result are provided for now.
+现有 8 种可能的结果。
 
 ```rust
 pub enum JudgeStatus {
@@ -77,25 +81,26 @@ pub enum JudgeStatus {
 }
 ```
 
-#### Comparation Mode
+#### 比较方法
 
-* `full`. Output must be the absolutely same with Answer, including blank characters.
+* `full`。输出必须和答案完全一致，包括回车、空格、制表符等空白字符。
 
-They are the same.
-
-```
-I Can EatGlass
-
-```
+下方的例子被认为是一样的。
 
 ```
 I Can EatGlass
 
 ```
 
-* `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparation are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
+```
+I Can EatGlass
 
-They are the same. Attention that there are some blank chars after `b` in latter one, and the empty space between `d` and `我能` cannot be ignored.
+```
+
+* `line`。首先输出和答案将先被移除开头和结尾的所有空白字符，此后将一一对比二者的每一行内容是否相同，每行最后的空白字符将被忽略。（阅读习惯为从左到右）
+
+下方的例子被认为是一样的。注意，在第二个的字母 `b` 之后有着一些空白字符，而且 `d` 和 `我能` 之间的空行不会被忽略。
+
 
 ```
 a b
@@ -115,9 +120,9 @@ d
 
 ```
 
-* `value`. Output and Answer are compared without any blank chars.
+* `value`。输出和答案将被移除所有空白符后再比较。
 
-They are the same.
+下方例子被认为是一样的。
 
 ```
 PHP
@@ -130,56 +135,58 @@ PHPisthebest
 language
 ```
 
-Status `PE` may appear when comparation mode is set to the first or second one.
+对于前两种比较方法，评测器可能给出 **PE** 的结果。
 
-### Speical (Speical Judge)
+### Speical 模式 (Speical Judge)
 
-* Input is readed from file.
-* A user-defined checker is used to check if program gives correct output.
+* 输入由文件给出。
+* 用户定义一个程序，用于判断用户代码是否给出正确答案。
+* 其他与标准模式一致。
 
-This mode is used when
+你可能会在下列情况下使用这种模式
 
-* There are many possible correct answers.
-* Output should be checked in real-time.
-* Other situation that normal mode cannot fit.
+* 答案不唯一。
+* 必须以输出作为输入来主动检查结果是否正确。
+* 其他标准模式无法事先的情况。
+* （这不是交互模式）
 
-Command pattern:
+命令格式：
 
 ```bash
 $ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-limit>
 ```
 
-* `<exec>`, the path of program to be run.
-* `<input>`, the input file for program.
-* `<checker>`, the path of checker
-* `<time-limit>`, time limit(MS) for program.
-* `<memory-limit>`, memory limit(MB) for program.
+* `<exec>`，用户代码。
+* `<input>`，输入文件。
+* `<checker>`，checker 程序。
+* `<time-limit>`，参照标准模式。
+* `<memory-limit>`，参照标准模式。
 
 #### Checker
 
-A checker will receive input, output of the program, and give the result of comparation.
+Checker 应该接收提供给用户代码的输入、来自用户代码的输出，并且给出检查结果。
 
-Two arguments are provided for the checker passing by `argv`:
+你的 Checker 会在 `argv`（对于 C 系程序来讲）种接收到 2 个参数。
 
-* ~~source code file~~
-* input file, which is the same as the one for program.
-* output file, containing the output of program.
+* ~~用户代码~~
+* 输入文件位置，内容与用户程序的输入一致。
+* 输出文件位置，内容为用户程序的输出。
 
-Checker should give output in pattern:
+Checker 必须给出下列格式的输出。
 
 ```
 <result>
 <msg>
 ```
 
-* `<result>`: same -> Accepted, different -> WrongAnswer, pattern_different -> PatternError.
-* `<msg>`: whatever you want.
+* `<result>`: `same` -> Accepted, `different` -> WrongAnswer, `pattern_different` -> PatternError.
+* `<msg>`: 你想输出的提示。
 
-MLE, TLE, RE, and other kinds of status are still given by Iron Tank.
+注意，MLE、TLE、RE以及其他的结果仍然由评测器给出。
 
-For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker's crashing downs the whole judge process too.
+目前，请确保你的 Checker 完全可以信任，评测器还没有将 Checker 也放入容器运行。
 
-A checker sample:
+下方是一个 checker 的例子。
 
 ```cpp
 #include <iostream>
@@ -204,32 +211,32 @@ int main(int argc,char* argv[]){
 }
 ```
 
-## Details
+## 细节
 
-### Time and Memory Limits
+### 时间和内存限制
 
-In fact, the real limits of time and memory are *two times* higher than values you set. That means a program can still run and exit normally even it has allocated more memory and used more cpu time than limit you set.
 
-Iron Tank will give `TLE` when the time usage is longer than limit.
+实际上，用户程序所受到的真正时间、内存限制是大于你给出的设置限制的，我们称它为真实限制。这意味着用户程序在使用了稍微多一点的内存和时间后，仍然不会被杀死。不过，这不会影响最终的评测结果。
 
-Will give `MLE` when
+评测器在用户程序使用超出限制的时间时，总会给出 TLE 的结果。
 
-* Program is killed by cell, and the peak memory usage overflow.
-* Program is killed by cell, and it exits with error message caused by memory allocation.
-* Program exits normally, but the peak memory usage overflow.
+评测器在下列情况下会给出 MLE 的结果。
 
-There is a possible existing problem that a program has not touched the limit unless the next allocation in future were done. Once such a allocation is put up with, program will be killed immediately. Since vary languages and compilers act differently, this situation has not been all covered now. That means a program may be killed, leaving result to be *Runtime Error* while it is actually *Memory Limit Exceeded*.
+* 用户程序被评测单元杀死，并且内存使用峰值超过了限制。
+* 用户程序被评测单元杀死，并且附带的错误信息与内存申请失败相关。
+* 用户程序正常退出，但是内存使用峰值超过了限制。
 
-> I have encountered this problem on some Online Judge platforms (won't specify them here). Hope it can be solved by the development of this repo.
 
-### Data Format
+这里可能有一个潜在的问题。当一个程序还没有碰到设置限制，但是它的下一次内存申请会让它直接碰到真实限制。这种情况下，一旦程序做出了这种内存申请，它就会被立刻杀死，并留下一些类似于 `bad alloc` 的内存申请失败的错误信息。然而它的内存峰值并没有超过设置限制，所以*很有可能*被评测器认为是运行时错误。有些 OJ 的评测器也有这种问题。
 
-**Be careful for data format.** Error caused by *invalid* data is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result leaving everything seems to be no problems.
+### 数据格式
 
-* **Use ASCII or UTF-8 for all data, including file and checker's output.**
-* **Input should ends with a new empty line, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
-* **Fully test your data.** Though it is none of bussiness of Judge.
 
-### A program luckily uses both too much time and memory...
+**注意你的样例数据格式**。格式不正确的数据引起的错误很难被发现，而且容易造成难以挽回的后果。Iron Tank 计划在今后引入数据格式检查。不过任何时候你都该注意：
 
-`TLE` is concerned first.
+* **总是使用 ASCII 或者 UTF-8，包括 checker 给出的输出**。
+* **输出必须以新的空行结束，除非你知道你在做什么**。对于比赛常用的 C/C++ 来讲，`scanf()` 和 `cin` 只会在输入回车时才真的读入数据（对于选手来讲）。不以空行结束，会让用户程序一直等待，最终导致超时。但是有些语言可能就不会在意这一点。如果输入格式对你的问题很重要，你可以忽略这一点。
+
+### 如果有一个程序同时超时而且爆了内存…
+
+结果会被认为是 TLE。
