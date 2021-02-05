@@ -3,7 +3,7 @@ pub mod error;
 pub mod probe;
 pub mod judge;
 pub mod remote_judge;
-mod server;
+pub mod server;
 
 #[derive(Debug)]
 pub struct JudgeResult {
