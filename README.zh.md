@@ -73,9 +73,11 @@ pub enum JudgeStatus {
     Uncertain,
     Accept,
     WrongAnswer,
-    PatternError,
+    PresentationError,
     MemoryLimitExceeded,
     TimeLimitExceeded,
+    InteractionTimeLimitExceeded,
+    ComplierError,
     ComplierLimitExceeded,
     RuntimeError,
 }
@@ -179,7 +181,7 @@ Checker 必须给出下列格式的输出。
 <msg>
 ```
 
-* `<result>`: `same` -> Accepted, `different` -> WrongAnswer, `pattern_different` -> PatternError.
+* `<result>`: `same` -> Accepted, `different` -> WrongAnswer, `presentation_different` -> PresentationError.
 * `<msg>`: 你想输出的提示。
 
 注意，MLE、TLE、RE以及其他的结果仍然由评测器给出。

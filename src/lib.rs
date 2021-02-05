@@ -19,7 +19,7 @@ pub enum JudgeStatus {
     Uncertain,
     Accept,
     WrongAnswer,
-    PatternError,
+    PresentationError,
     MemoryLimitExceeded,
     TimeLimitExceeded,
     InteractionTimeLimitExceeded,

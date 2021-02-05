@@ -11,7 +11,7 @@ impl Into<JudgeStatus> for CompareResult{
         match self {
             CompareResult::Same => JudgeStatus::Accept,
             CompareResult::Different => JudgeStatus::WrongAnswer,
-            CompareResult::PatternDifferent => JudgeStatus::PatternError,
+            CompareResult::PatternDifferent => JudgeStatus::PresentationError,
         }
     }
 }

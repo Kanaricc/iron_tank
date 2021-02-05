@@ -64,16 +64,18 @@ $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 
 **(WIP)**
 
-8 kinds of result are provided for now.
+10 kinds of result are provided for now.
 
 ```rust
 pub enum JudgeStatus {
     Uncertain,
     Accept,
     WrongAnswer,
-    PatternError,
+    PresentationError,
     MemoryLimitExceeded,
     TimeLimitExceeded,
+    InteractionTimeLimitExceeded,
+    ComplierError,
     ComplierLimitExceeded,
     RuntimeError,
 }
@@ -174,7 +176,7 @@ Checker should give output in pattern:
 <msg>
 ```
 
-* `<result>`: same -> Accepted, different -> WrongAnswer, pattern_different -> PatternError.
+* `<result>`: same -> Accepted, different -> WrongAnswer, presentation_different -> PresentationError.
 * `<msg>`: whatever you want.
 
 MLE, TLE, RE, and other kinds of status are still given by Iron Tank.
