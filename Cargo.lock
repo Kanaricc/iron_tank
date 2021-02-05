@@ -1245,7 +1245,7 @@ checksum = "47be2f14c678be2fdcab04ab1171db51b2762ce6f0a8ee87c8dd4a04ed216135"
 
 [[package]]
 name = "iron_tank"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "actix-web",
  "async-std",

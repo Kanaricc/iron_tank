@@ -283,7 +283,7 @@ mod tests {
             run_id: 332,
         };
 
-        sniffer.fetch_status();
+        sniffer.fetch_status()?;
         Ok(())
     }
 }
