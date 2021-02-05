@@ -1,6 +1,6 @@
-use crate::error::Error;
 use crate::error::Result;
 use crate::JudgeResult;
+use crate::{error::Error, JudgeStatus};
 use regex::Regex;
 use reqwest::{blocking::multipart::Form, blocking::Client};
 use select::{
@@ -187,9 +187,44 @@ impl RemoteSniffer for OpentrainsJudgeSniffer {
             self.sid, self.run_id
         );
 
-        let _content=reqwest::blocking::get(&url)?.text()?;
-        
+        let content = reqwest::blocking::get(&url)?.text()?;
+        let sel = Document::from(content.as_str());
 
+        if let Some(sel) = sel
+            .find(predicate::Name("h2").descendant(predicate::Name("font")))
+            .nth(0)
+        {
+            let sel = sel.text();
+
+            // TODO: status not covered completely
+            // refer to https://ejudge.ru/wiki/index.php/%D0%92%D0%B5%D1%80%D0%B4%D0%B8%D0%BA%D1%82%D1%8B_%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F
+            let status = match sel.as_str() {
+                "OK" => JudgeStatus::Accept,
+                "Wrong answer" => JudgeStatus::WrongAnswer,
+                "Time-limit exceeded"=>JudgeStatus::TimeLimitExceeded,
+                "Memory-limit exceeded"=>JudgeStatus::MemoryLimitExceeded,
+                "Wall time-limit exceeded"=>JudgeStatus::InteractionTimeLimitExceeded,
+                "Run-time error"=>JudgeStatus::RuntimeError,
+                _ => unreachable!(),
+            };
+
+            return Ok(JudgeResult {
+                status: status,
+                time: None,
+                memory: None,
+                stdout: None,
+                stderr: None,
+            });
+        } else if let Some(_sel) = sel.find(predicate::Name("pre")).next() {
+            // TODO: add CE info
+            return Ok(JudgeResult {
+                status: JudgeStatus::ComplierError,
+                time: None,
+                memory: None,
+                stdout: None,
+                stderr: None,
+            });
+        }
 
         todo!()
     }
@@ -225,7 +260,7 @@ mod tests {
     #[test]
     fn fetch_remote_number() -> Result<()> {
         let res = reqwest::blocking::get(
-            "http://opentrains.snarknews.info/~ejudge/team.cgi?SID=&action=140",
+            "http://opentrains.snarknews.info/~ejudge/team.cgi?SID=d858b4b226d4dcff&action=140",
         )?
         .text()?;
 
@@ -238,6 +273,17 @@ mod tests {
         let test = test.find(predicate::Name("td")).next().unwrap();
         println!("{:#?}", test.text());
 
+        Ok(())
+    }
+
+    #[test]
+    fn fetch_remote_result() -> Result<()> {
+        let sniffer = OpentrainsJudgeSniffer {
+            sid: "d858b4b226d4dcff".into(),
+            run_id: 332,
+        };
+
+        sniffer.fetch_status();
         Ok(())
     }
 }
