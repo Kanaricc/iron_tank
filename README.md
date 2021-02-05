@@ -14,7 +14,7 @@ Does not support Windows.
 
 ### Install From Pre-builded Version
 
-1. Download the newest version from release page,  `iron_tank` and `iron_cell`.
+1. Download the newest version from the release page,  `iron_tank` and `iron_cell`.
 2. Put the executable file you just downloaded in one same folder.
 3. Done.
 
@@ -34,10 +34,10 @@ By starting Iron Tank in server mode, you get a judge backend. (WIP)
 
 ### Normal
 
-* Input and answer are readed from file.
-* Program io use standard io stream.
+* Input and answer are read from file.
+* Program IO uses standard io stream.
 * Program should only use limited memory and exit in limited time, or it will be killed.
-* Program are granted ONLY basic permissions such as allocating memory, reading standard stream and some system-related operations.
+* Program is granted ONLY basic permissions such as allocating memory, reading standard stream and some system-related operations.
 
 This is the common and useful mode for most situation.
 
@@ -54,7 +54,7 @@ $ iron_tank normal <exec> -i <input> -a <answer> -t <time-limit> -m <memory-limi
 * `<memory-limit>`, memory limit(MB) for program.
 * `<compare-mode>`, define the approach to compare the output and answer.
 
-Just for example. The command below will start a "cell", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content in `1.ans` line by line.
+Just for example. The command below will start a "cell", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content of `1.ans` line by line.
 
 ```
 $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
@@ -95,7 +95,7 @@ I Can EatGlass
 
 ```
 
-* `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparation are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
+* `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparison are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
 
 They are the same. Attention that there are some blank chars after `b` in latter one, and the empty space between `d` and `我能` cannot be ignored.
 
@@ -132,7 +132,7 @@ PHPisthebest
 language
 ```
 
-Status `PE` may appear when comparation mode is set to the first or second one.
+Status `PE` may appear when comparison mode is set to the first or second one.
 
 ### Speical (Speical Judge)
 
@@ -159,7 +159,7 @@ $ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-li
 
 #### Checker
 
-A checker will receive input, output of the program, and give the result of comparation.
+A checker will receive input, output of the program, and give the result of comparison.
 
 Two arguments are provided for the checker passing by `argv`:
 
