@@ -1247,6 +1247,7 @@ checksum = "47be2f14c678be2fdcab04ab1171db51b2762ce6f0a8ee87c8dd4a04ed216135"
 name = "iron_tank"
 version = "0.1.1"
 dependencies = [
+ "actix-rt",
  "actix-web",
  "async-std",
  "clap 3.0.0-beta.2",
