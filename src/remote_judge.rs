@@ -225,7 +225,7 @@ mod tests {
     #[test]
     fn fetch_remote_number() -> Result<()> {
         let res = reqwest::blocking::get(
-            "http://opentrains.snarknews.info/~ejudge/team.cgi?SID=c6ae8b956b321189&action=140",
+            "http://opentrains.snarknews.info/~ejudge/team.cgi?SID=&action=140",
         )?
         .text()?;
 
