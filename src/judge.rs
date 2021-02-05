@@ -114,10 +114,10 @@ impl Judge for NormalJudge {
 
         let judge_result = JudgeResult {
             status: judge_status,
-            time: probe_res.get_time_usage(),
-            memory: probe_res.get_peak_memory(),
-            stdout: output,
-            stderr: errout,
+            time: probe_res.get_time_usage().into(),
+            memory: probe_res.get_peak_memory().into(),
+            stdout: output.into(),
+            stderr: errout.into(),
         };
 
         Ok(judge_result)
@@ -245,10 +245,10 @@ impl Judge for SpecialJudge {
 
         let judge_result = JudgeResult {
             status: judge_status,
-            time: probe_res.get_time_usage(),
-            memory: probe_res.get_peak_memory(),
-            stdout: output,
-            stderr: errout,
+            time: probe_res.get_time_usage().into(),
+            memory: probe_res.get_peak_memory().into(),
+            stdout: output.into(),
+            stderr: errout.into(),
         };
         Ok(judge_result)
     }
@@ -274,8 +274,8 @@ mod tests {
         let result = judge.judge()?;
 
         assert!(matches!(result.status, JudgeStatus::Accept));
-        assert!(result.time > 0 && result.time <= 30 * 1000);
-        assert!(result.memory > 0 && result.memory <= 256 * 1024);
+        assert!(result.time.unwrap() > 0 && result.time.unwrap() <= 30 * 1000);
+        assert!(result.memory.unwrap() > 0 && result.memory.unwrap() <= 256 * 1024);
 
         Ok(())
     }
@@ -312,7 +312,7 @@ mod tests {
 
         let result = judge.judge()?;
 
-        assert!(result.time > 1000);
+        assert!(result.time.unwrap() > 1000);
         debug_assert!(matches!(result.status, JudgeStatus::TimeLimitExceeded));
         Ok(())
     }
@@ -331,7 +331,7 @@ mod tests {
         let result = judge.judge()?;
 
         assert!(matches!(result.status, JudgeStatus::MemoryLimitExceeded));
-        assert!(result.memory > 256 * 1024);
+        assert!(result.memory.unwrap() > 256 * 1024);
         Ok(())
     }
 

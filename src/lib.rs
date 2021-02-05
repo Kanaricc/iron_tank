@@ -8,10 +8,10 @@ mod server;
 #[derive(Debug)]
 pub struct JudgeResult {
     pub status: JudgeStatus,
-    pub time: u64,
-    pub memory: u64,
-    pub stdout:String,
-    pub stderr:String,
+    pub time: Option<u64>,
+    pub memory: Option<u64>,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
 }
 
 #[derive(Debug)]
@@ -22,6 +22,8 @@ pub enum JudgeStatus {
     PatternError,
     MemoryLimitExceeded,
     TimeLimitExceeded,
+    InteractionTimeLimitExceeded,
+    ComplierError,
     ComplierLimitExceeded,
     RuntimeError,
 }
