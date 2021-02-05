@@ -60,6 +60,7 @@ struct OpentrainsJudge {
     client: Client,
 }
 
+#[allow(dead_code)]
 impl OpentrainsJudge {
     pub fn new(
         username: String,
@@ -186,7 +187,7 @@ impl RemoteSniffer for OpentrainsJudgeSniffer {
             self.sid, self.run_id
         );
 
-        let content=reqwest::blocking::get(&url)?.text()?;
+        let _content=reqwest::blocking::get(&url)?.text()?;
         
 
 
