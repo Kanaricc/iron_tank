@@ -1,5 +1,9 @@
 use clap::Clap;
-use iron_tank::{compare::{self, CompareMode}, judge::SpecialJudge};
+use iron_tank::{
+    compare::{self, CompareMode},
+    config::{ComparisionMode, LimitConfig},
+    judge::{launch_normal_case_judge, launch_special_case_judge, SpecialJudge},
+};
 use iron_tank::{
     error::{Error, Result},
     judge::{Judge, NormalJudge},
@@ -21,7 +25,7 @@ struct Opts {
 enum SubCommand {
     #[clap(version = "0.1.0", about = "Judge in normal mode")]
     Normal(NormalJudgeConfig),
-    #[clap(version="0.1.0",about="Judge in special mode")]
+    #[clap(version = "0.1.0", about = "Judge in special mode")]
     Special(SpecialJudgeConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
@@ -69,64 +73,37 @@ fn main() -> Result<()> {
 
     match opts.subcmd {
         SubCommand::Normal(config) => {
-            let path = Path::new(&config.exec);
-            let input_file_path = Path::new(&config.input_file);
-            let answer_file_path = Path::new(&config.answer_file);
-
-            if !path.exists() || !input_file_path.exists() || !answer_file_path.exists() {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "code, input or answer not found",
-                )
-                .into());
-            }
-
-            let input = fs::read_to_string(input_file_path)?;
-            let answer = fs::read_to_string(answer_file_path)?;
-
-            let comparation: Box<dyn CompareMode> = match config.compare_method.as_str() {
-                "full" => Box::new(compare::GlobalCompare {}),
-                "line" => Box::new(compare::LineCompare {}),
-                "value" => Box::new(compare::ValueCompare {}),
+            let comparision_mode = match config.compare_method.as_str() {
+                "full" => ComparisionMode::Full,
+                "line" => ComparisionMode::Line,
+                "value" => ComparisionMode::Value,
                 _ => Err(Error::Argument("comparation mode not found".into()))?,
             };
 
-            let judge = NormalJudge::new(
-                config.exec,
-                input,
-                answer,
-                config.memory_limit,
-                config.time_limit,
-                comparation,
-            );
-            let judge_result = judge.judge()?;
+            let judge_result = launch_normal_case_judge(
+                &config.exec,
+                &config.input_file,
+                &config.answer_file,
+                LimitConfig {
+                    time_limit: config.time_limit,
+                    memory_limit: config.memory_limit,
+                },
+                comparision_mode,
+            )?;
             println!("{:#?}", judge_result);
         }
         SubCommand::Special(config) => {
-            let path = Path::new(&config.exec);
-            let input_file_path = Path::new(&config.input_file);
-            let checker_path = Path::new(&config.checker);
-
-            if !path.exists() || !input_file_path.exists() || !checker_path.exists() {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "code, input or checker not found",
-                )
-                .into());
-            }
-
-            let input = fs::read_to_string(input_file_path)?;
-
-            let judge=SpecialJudge::new(
-                config.exec,
-                input,
-                config.memory_limit,
-                config.time_limit,
-                config.checker
-            );
-            let judge_result=judge.judge()?;
-            println!("{:#?}",judge_result);
-        }        
+            let judge_result = launch_special_case_judge(
+                &config.exec,
+                &config.input_file,
+                &config.checker,
+                LimitConfig {
+                    time_limit: config.time_limit,
+                    memory_limit:config.memory_limit,
+                },
+            )?;
+            println!("{:#?}", judge_result);
+        }
         SubCommand::Debug => {}
     }
 

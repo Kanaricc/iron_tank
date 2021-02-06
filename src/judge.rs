@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::{
-    compare::CompareMode,
-    config::LimitConfig,
+    compare::{CompareMode},
+    config::{ComparisionMode, LimitConfig},
     error::{Error, Result},
     probe::ProcessProbe,
     JudgeResult, JudgeStatus,
@@ -254,6 +254,75 @@ impl Judge for SpecialJudge {
         };
         Ok(judge_result)
     }
+}
+
+pub fn launch_normal_case_judge(
+    exec: &str,
+    input_file: &str,
+    answer_file: &str,
+    limit: LimitConfig,
+    comparision_mode: ComparisionMode,
+) -> Result<JudgeResult> {
+    let path = Path::new(exec);
+    let input_file_path = Path::new(input_file);
+    let answer_file_path = Path::new(answer_file);
+
+    if !path.exists() || !input_file_path.exists() || !answer_file_path.exists() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "code, input or answer not found",
+        )
+        .into());
+    }
+
+    let input = fs::read_to_string(input_file_path)?;
+    let answer = fs::read_to_string(answer_file_path)?;
+
+    let comparation: Box<dyn CompareMode> = comparision_mode.into();
+
+    let judge = NormalJudge::new(
+        exec.into(),
+        input,
+        answer,
+        limit.memory_limit,
+        limit.time_limit,
+        comparation,
+    );
+    let judge_result = judge.judge()?;
+
+    Ok(judge_result)
+}
+
+pub fn launch_special_case_judge(
+    exec: &str,
+    input_file: &str,
+    checker: &str,
+    limit: LimitConfig,
+) -> Result<JudgeResult> {
+    let path = Path::new(exec);
+    let input_file_path = Path::new(input_file);
+    let checker_path = Path::new(checker);
+
+    if !path.exists() || !input_file_path.exists() || !checker_path.exists() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "code, input or checker not found",
+        )
+        .into());
+    }
+
+    let input = fs::read_to_string(input_file_path)?;
+
+    let judge = SpecialJudge::new(
+        exec.into(),
+        input,
+        limit.memory_limit,
+        limit.time_limit,
+        checker.into(),
+    );
+    let judge_result = judge.judge()?;
+
+    Ok(judge_result)
 }
 
 #[cfg(test)]

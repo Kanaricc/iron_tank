@@ -1,5 +1,7 @@
 use serde::{Serialize,Deserialize};
 
+use crate::compare::{CompareMode, GlobalCompare, LineCompare, ValueCompare};
+
 #[derive(Debug,Serialize,Deserialize)]
 pub struct LimitConfig{
     pub time_limit:u64,
@@ -14,6 +16,16 @@ pub struct CaseConfig{
 #[derive(Debug,Serialize,Deserialize)]
 pub enum ComparisionMode{
     Full,Line,Value
+}
+
+impl Into<Box<dyn CompareMode>> for ComparisionMode {
+    fn into(self) -> Box<dyn CompareMode> {
+        match self {
+            ComparisionMode::Full => Box::new(GlobalCompare{}),
+            ComparisionMode::Line => Box::new(LineCompare{}),
+            ComparisionMode::Value => Box::new(ValueCompare{}),
+        }
+    }
 }
 
 #[derive(Debug,Serialize,Deserialize)]
