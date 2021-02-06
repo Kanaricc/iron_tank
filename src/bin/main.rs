@@ -1,14 +1,11 @@
 use clap::Clap;
 use iron_tank::{
-    compare::{self, CompareMode},
-    config::{ComparisionMode, LimitConfig},
-    judge::{launch_normal_case_judge, launch_special_case_judge, SpecialJudge},
+    config::{ComparisionModeConfig, LimitConfig},
+    judge::{launch_normal_case_judge, launch_special_case_judge},
 };
 use iron_tank::{
     error::{Error, Result},
-    judge::{Judge, NormalJudge},
 };
-use std::{fs, path::Path};
 #[derive(Clap)]
 #[clap(
     version = "0.1.1",
@@ -74,9 +71,9 @@ fn main() -> Result<()> {
     match opts.subcmd {
         SubCommand::Normal(config) => {
             let comparision_mode = match config.compare_method.as_str() {
-                "full" => ComparisionMode::Full,
-                "line" => ComparisionMode::Line,
-                "value" => ComparisionMode::Value,
+                "full" => ComparisionModeConfig::Full,
+                "line" => ComparisionModeConfig::Line,
+                "value" => ComparisionModeConfig::Value,
                 _ => Err(Error::Argument("comparation mode not found".into()))?,
             };
 

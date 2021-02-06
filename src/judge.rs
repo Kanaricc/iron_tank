@@ -6,8 +6,8 @@ use std::{
 };
 
 use crate::{
-    compare::{CompareMode},
-    config::{ComparisionMode, LimitConfig},
+    compare::{ComparisionMode},
+    config::{ComparisionModeConfig, LimitConfig},
     error::{Error, Result},
     probe::ProcessProbe,
     JudgeResult, JudgeStatus,
@@ -22,7 +22,7 @@ pub struct NormalJudge {
     input: String,
     answer: String,
     limit: LimitConfig,
-    comparation: Box<dyn CompareMode>,
+    comparation: Box<dyn ComparisionMode>,
 }
 
 impl NormalJudge {
@@ -32,7 +32,7 @@ impl NormalJudge {
         answer: String,
         memory_limit: u64,
         time_limit: u64,
-        comparation: Box<dyn CompareMode>,
+        comparation: Box<dyn ComparisionMode>,
     ) -> Self {
         Self {
             exec,
@@ -261,7 +261,7 @@ pub fn launch_normal_case_judge(
     input_file: &str,
     answer_file: &str,
     limit: LimitConfig,
-    comparision_mode: ComparisionMode,
+    comparision_mode: ComparisionModeConfig,
 ) -> Result<JudgeResult> {
     let path = Path::new(exec);
     let input_file_path = Path::new(input_file);
@@ -278,7 +278,7 @@ pub fn launch_normal_case_judge(
     let input = fs::read_to_string(input_file_path)?;
     let answer = fs::read_to_string(answer_file_path)?;
 
-    let comparation: Box<dyn CompareMode> = comparision_mode.into();
+    let comparation: Box<dyn ComparisionMode> = comparision_mode.into();
 
     let judge = NormalJudge::new(
         exec.into(),

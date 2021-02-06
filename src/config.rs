@@ -1,6 +1,6 @@
 use serde::{Serialize,Deserialize};
 
-use crate::compare::{CompareMode, GlobalCompare, LineCompare, ValueCompare};
+use crate::compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare};
 
 #[derive(Debug,Serialize,Deserialize)]
 pub struct LimitConfig{
@@ -14,16 +14,16 @@ pub struct CaseConfig{
 }
 
 #[derive(Debug,Serialize,Deserialize)]
-pub enum ComparisionMode{
+pub enum ComparisionModeConfig{
     Full,Line,Value
 }
 
-impl Into<Box<dyn CompareMode>> for ComparisionMode {
-    fn into(self) -> Box<dyn CompareMode> {
+impl Into<Box<dyn ComparisionMode>> for ComparisionModeConfig {
+    fn into(self) -> Box<dyn ComparisionMode> {
         match self {
-            ComparisionMode::Full => Box::new(GlobalCompare{}),
-            ComparisionMode::Line => Box::new(LineCompare{}),
-            ComparisionMode::Value => Box::new(ValueCompare{}),
+            ComparisionModeConfig::Full => Box::new(GlobalCompare{}),
+            ComparisionModeConfig::Line => Box::new(LineCompare{}),
+            ComparisionModeConfig::Value => Box::new(ValueCompare{}),
         }
     }
 }
@@ -32,7 +32,7 @@ impl Into<Box<dyn CompareMode>> for ComparisionMode {
 pub struct ProblemConfig{
     pub name:String,
     pub limit_config:LimitConfig,
-    pub comparision_mode:ComparisionMode,
+    pub comparision_mode:ComparisionModeConfig,
     pub cases:Vec<CaseConfig>,
 }
 
@@ -47,7 +47,7 @@ mod tests{
                 time_limit: 1,
                 memory_limit: 2,
             },
-            comparision_mode: ComparisionMode::Line,
+            comparision_mode: ComparisionModeConfig::Line,
             cases: vec![CaseConfig{
                 inputfile_path:"in".into(),
                 answerfile_path:"out".into(),
