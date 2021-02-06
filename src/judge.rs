@@ -5,9 +5,9 @@ use std::{
     process::{Command, Stdio},
 };
 
-
 use crate::{
     compare::CompareMode,
+    config::LimitConfig,
     error::{Error, Result},
     probe::ProcessProbe,
     JudgeResult, JudgeStatus,
@@ -21,8 +21,7 @@ pub struct NormalJudge {
     exec: String,
     input: String,
     answer: String,
-    memory_limit: u64,
-    time_limit: u64,
+    limit: LimitConfig,
     comparation: Box<dyn CompareMode>,
 }
 
@@ -39,8 +38,10 @@ impl NormalJudge {
             exec,
             input,
             answer,
-            time_limit,
-            memory_limit,
+            limit: LimitConfig {
+                time_limit: time_limit,
+                memory_limit: memory_limit,
+            },
             comparation,
         }
     }
@@ -58,8 +59,8 @@ impl Judge for NormalJudge {
 
         let mut command = Command::new("./target/debug/tank_cell")
             .arg(path)
-            .arg(format!("-m {}", self.memory_limit))
-            .arg(format!("-t {}", self.time_limit))
+            .arg(format!("-m {}", self.limit.memory_limit))
+            .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -93,9 +94,9 @@ impl Judge for NormalJudge {
         cerr.read_to_string(&mut errout)?;
 
         // check result
-        let mut judge_status = if probe_res.get_time_usage() >= self.time_limit {
+        let mut judge_status = if probe_res.get_time_usage() >= self.limit.time_limit {
             JudgeStatus::TimeLimitExceeded
-        } else if probe_res.get_peak_memory() >= self.memory_limit * 1024 {
+        } else if probe_res.get_peak_memory() >= self.limit.memory_limit * 1024 {
             JudgeStatus::MemoryLimitExceeded
         } else if errout.find("bad_alloc").is_some() {
             // fix: struct like vector which does not allocate memory gradually
@@ -127,8 +128,7 @@ impl Judge for NormalJudge {
 pub struct SpecialJudge {
     exec: String,
     input: String,
-    memory_limit: u64,
-    time_limit: u64,
+    limit: LimitConfig,
     checker: String,
 }
 
@@ -143,8 +143,10 @@ impl SpecialJudge {
         Self {
             exec,
             input,
-            memory_limit,
-            time_limit,
+            limit: LimitConfig {
+                memory_limit,
+                time_limit,
+            },
             checker,
         }
     }
@@ -162,8 +164,8 @@ impl Judge for SpecialJudge {
 
         let mut command = Command::new("./target/debug/tank_cell")
             .arg(path)
-            .arg(format!("-m {}", self.memory_limit))
-            .arg(format!("-t {}", self.time_limit))
+            .arg(format!("-m {}", self.limit.memory_limit))
+            .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -197,9 +199,9 @@ impl Judge for SpecialJudge {
         cerr.read_to_string(&mut errout)?;
 
         // check result
-        let mut judge_status = if probe_res.get_time_usage() >= self.time_limit {
+        let mut judge_status = if probe_res.get_time_usage() >= self.limit.time_limit {
             JudgeStatus::TimeLimitExceeded
-        } else if probe_res.get_peak_memory() >= self.memory_limit * 1024 {
+        } else if probe_res.get_peak_memory() >= self.limit.memory_limit * 1024 {
             JudgeStatus::MemoryLimitExceeded
         } else if errout.find("bad_alloc").is_some() {
             // fix: struct like vector which does not allocate memory gradually
@@ -349,6 +351,4 @@ mod tests {
 
         judge.judge().unwrap();
     }
-
-    
 }
