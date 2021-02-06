@@ -214,6 +214,43 @@ int main(int argc,char* argv[]){
 
 WIP.
 
+### Prefab
+
+By using a YAML configuration file, you can edit a problem beforehand and quickly use that configuration to create tasks.
+
+Command pattern:
+
+```bash
+$ iron_tank prefab <config> <exec>
+```
+
+* `<config>`: config file.
+* `<exec>`: the path of program to be run.
+
+To make a prefab,
+
+1. Create a folder, named by the title of problem (for example, `A`) or whatever you want.
+2. Touch a new file in it named `problem.yaml`.
+
+Content of a `problem.yaml` likes
+
+```yaml
+name: A                     # the title of problem
+limit_config:
+  time_limit: 1000          # time limit (ms)
+  memory_limit: 256         # and memory limit (MB)
+judge_mode:                 # judge mode
+  Normal:                   # here we use normal mode
+    comparision_mode: Line  # compare output using `Line` mode
+cases:                      # you can add many cases for one problem
+  - inputfile_path: 1.in    # the path is relative to this config file
+    answerfile_path: 1.ans
+  - inputfile_path: 2.in
+    answerfile_path: 2.ans
+```
+
+Then, prepare and put your data in correct place according to this config file. I suggest you put them in the same folder.
+
 ## Details
 
 ### Time and Memory Limits
