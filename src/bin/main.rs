@@ -1,8 +1,5 @@
 use clap::Clap;
-use iron_tank::{
-    config::{ComparisionModeConfig, LimitConfig},
-    judge::{launch_normal_case_judge, launch_special_case_judge},
-};
+use iron_tank::{config::{ComparisionModeConfig, LimitConfig, ProblemConfig}, judge::{launch_normal_case_judge, launch_special_case_judge}};
 use iron_tank::{
     error::{Error, Result},
 };
@@ -24,6 +21,8 @@ enum SubCommand {
     Normal(NormalJudgeConfig),
     #[clap(version = "0.1.0", about = "Judge in special mode")]
     Special(SpecialJudgeConfig),
+    #[clap(version = "0.1.0", about = "Judge using config.yaml")]
+    Prefab(PrefabJudgeConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
 }
@@ -60,6 +59,15 @@ struct SpecialJudgeConfig {
     time_limit: u64,
     #[clap(short, about = "checker program path")]
     checker: String,
+}
+
+#[derive(Clap,Debug)]
+struct PrefabJudgeConfig{
+    #[clap(about = "problem config")]
+    config:String,
+    #[clap(about = "path of program to run")]
+    exec: String,
+    
 }
 
 #[derive(Clap, Debug)]
@@ -100,6 +108,10 @@ fn main() -> Result<()> {
                 },
             )?;
             println!("{:#?}", judge_result);
+        }
+        SubCommand::Prefab(config) => {
+            let judge_result=ProblemConfig::from_file(&config.config)?.judge(&config.exec)?;
+            println!("{:#?}",judge_result);
         }
         SubCommand::Debug => {}
     }
