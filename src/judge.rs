@@ -260,8 +260,8 @@ pub fn launch_normal_case_judge(
     exec: &str,
     input_file: &str,
     answer_file: &str,
-    limit: LimitConfig,
-    comparision_mode: ComparisionModeConfig,
+    limit: &LimitConfig,
+    comparision_mode: &ComparisionModeConfig,
 ) -> Result<JudgeResult> {
     let path = Path::new(exec);
     let input_file_path = Path::new(input_file);
@@ -297,7 +297,7 @@ pub fn launch_special_case_judge(
     exec: &str,
     input_file: &str,
     checker: &str,
-    limit: LimitConfig,
+    limit: &LimitConfig,
 ) -> Result<JudgeResult> {
     let path = Path::new(exec);
     let input_file_path = Path::new(input_file);

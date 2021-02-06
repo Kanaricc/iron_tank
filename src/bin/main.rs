@@ -81,11 +81,11 @@ fn main() -> Result<()> {
                 &config.exec,
                 &config.input_file,
                 &config.answer_file,
-                LimitConfig {
+                &LimitConfig {
                     time_limit: config.time_limit,
                     memory_limit: config.memory_limit,
                 },
-                comparision_mode,
+                &comparision_mode,
             )?;
             println!("{:#?}", judge_result);
         }
@@ -94,7 +94,7 @@ fn main() -> Result<()> {
                 &config.exec,
                 &config.input_file,
                 &config.checker,
-                LimitConfig {
+                &LimitConfig {
                     time_limit: config.time_limit,
                     memory_limit:config.memory_limit,
                 },
