@@ -71,7 +71,7 @@ struct InteractiveJudgeConfig {
     #[clap(about = "path of program to run")]
     exec: String,
     #[clap(short, about = "input file path")]
-    input_file: String,
+    input_file: Option<String>,
     #[clap(short, default_value = "1024", about = "memory limit(MB)")]
     memory_limit: u64,
     #[clap(short, default_value = "30000", about = "time limit(MS)")]
@@ -134,7 +134,7 @@ fn main() -> Result<()> {
         SubCommand::Interactive(config) => {
             let judge_result = launch_interactive_case_judge(
                 &config.exec,
-                &config.input_file,
+                config.input_file,
                 &config.interactor,
                 &LimitConfig {
                     time_limit: config.time_limit,

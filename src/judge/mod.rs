@@ -87,7 +87,7 @@ pub fn launch_special_case_judge(
 
 pub fn launch_interactive_case_judge(
     exec: &str,
-    input_file: Option<&str>,
+    input_file: Option<String>,
     interactor: &str,
     limit: &LimitConfig,
 ) -> Result<JudgeResult> {
@@ -104,7 +104,7 @@ pub fn launch_interactive_case_judge(
     }
 
     let input = if let Some(input_file) = input_file {
-        let input_file_path = Path::new(input_file);
+        let input_file_path = Path::new(&input_file);
         if !input_file_path.exists() {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
