@@ -91,6 +91,7 @@ struct PrefabJudgeConfig {
 struct DebugJudge {}
 
 fn main() -> Result<()> {
+
     let opts: Opts = Opts::parse();
 
     match opts.subcmd {

@@ -61,7 +61,7 @@ impl Judge for NormalJudge {
             .unwrap()
             .to_string();
 
-        let mut command = Command::new("tank_cell")
+        let mut command = Command::new(get_path_of_tankcell())
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
@@ -167,7 +167,7 @@ impl Judge for SpecialJudge {
             .unwrap()
             .to_string();
 
-        let mut command = Command::new("tank_cell")
+        let mut command = Command::new(get_path_of_tankcell())
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
@@ -320,7 +320,7 @@ impl Judge for InteractiveJudge {
             .unwrap()
             .to_string();
 
-        let command = Command::new("tank_cell")
+        let command = Command::new(get_path_of_tankcell())
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
@@ -598,6 +598,10 @@ pub fn launch_interactive_case_judge(
     let judge_result = judge.judge()?;
 
     Ok(judge_result)
+}
+
+pub fn get_path_of_tankcell()->String{
+    std::env::current_exe().unwrap().parent().unwrap().join("tank_cell").to_string_lossy().to_string()
 }
 
 #[cfg(test)]
