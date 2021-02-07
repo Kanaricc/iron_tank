@@ -46,7 +46,13 @@ impl Judge for InteractiveJudge {
         let interactor_fullpath = fs::canonicalize(self.interactor).unwrap();
         let interactor_fullpath = Path::new(&interactor_fullpath);
 
+        let temp_dir = tempfile::TempDir::new()?;
+        let input_tpath = temp_dir.path().join("input.txt");
+
+        fs::copy(&self.input, &input_tpath).unwrap();
+
         let interactor = Command::new(interactor_fullpath)
+            .arg(input_tpath.to_str().unwrap())
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
