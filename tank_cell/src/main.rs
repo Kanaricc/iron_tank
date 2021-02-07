@@ -120,6 +120,7 @@ unsafe fn load_minimum_rules(ctx: *mut c_void) {
         ctx,
         vec![
             SYS_read,
+            SYS_lseek,
             SYS_write,
             // SYS_open,
             SYS_close,

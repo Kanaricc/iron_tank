@@ -61,7 +61,7 @@ impl Judge for NormalJudge {
             .unwrap()
             .to_string();
 
-        let mut command = Command::new("./target/debug/tank_cell")
+        let mut command = Command::new("tank_cell")
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
@@ -167,7 +167,7 @@ impl Judge for SpecialJudge {
             .unwrap()
             .to_string();
 
-        let mut command = Command::new("./target/debug/tank_cell")
+        let mut command = Command::new("tank_cell")
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
@@ -320,7 +320,7 @@ impl Judge for InteractiveJudge {
             .unwrap()
             .to_string();
 
-        let command = Command::new("./target/debug/tank_cell")
+        let command = Command::new("tank_cell")
             .arg(path)
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
