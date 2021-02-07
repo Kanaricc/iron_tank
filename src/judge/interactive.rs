@@ -18,7 +18,7 @@ use libc::*;
 
 pub struct InteractiveJudge {
     exec: String,
-    input: String,
+    input: Option<String>,
     limit: LimitConfig,
     interactor: String,
 }
@@ -31,7 +31,7 @@ enum InteractiveMessage {
 }
 
 impl InteractiveJudge {
-    pub fn new(exec: String, input: String, limit: LimitConfig, interactor: String) -> Self {
+    pub fn new(exec: String, input: Option<String>, limit: LimitConfig, interactor: String) -> Self {
         Self {
             exec,
             input,
@@ -46,18 +46,23 @@ impl Judge for InteractiveJudge {
         let interactor_fullpath = fs::canonicalize(self.interactor).unwrap();
         let interactor_fullpath = Path::new(&interactor_fullpath);
 
-        let temp_dir = tempfile::TempDir::new()?;
-        let input_tpath = temp_dir.path().join("input.txt");
-
-        fs::copy(&self.input, &input_tpath).unwrap();
-
-        let interactor = Command::new(interactor_fullpath)
-            .arg(input_tpath.to_str().unwrap())
+        let interactor=if let Some(input)=self.input{
+            Command::new(interactor_fullpath)
+            .arg(input)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .unwrap();
+            .unwrap()
+        }else{
+            Command::new(interactor_fullpath)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap()
+        };
+
         let interactor_pid = interactor.id();
         let mut iin = interactor.stdin.ok_or(std::io::Error::new(
             std::io::ErrorKind::BrokenPipe,

@@ -87,15 +87,15 @@ pub fn launch_special_case_judge(
 
 pub fn launch_interactive_case_judge(
     exec: &str,
-    input_file: &str,
+    input_file: Option<&str>,
     interactor: &str,
     limit: &LimitConfig,
 ) -> Result<JudgeResult> {
     let path = Path::new(exec);
-    let input_file_path = Path::new(input_file);
+
     let interactor_path = Path::new(interactor);
 
-    if !path.exists() || !input_file_path.exists() || !interactor_path.exists() {
+    if !path.exists() || !interactor_path.exists() {
         return Err(std::io::Error::new(
             std::io::ErrorKind::NotFound,
             "code, input or interactor not found",
@@ -103,8 +103,20 @@ pub fn launch_interactive_case_judge(
         .into());
     }
 
-    let input = fs::read_to_string(input_file_path)?;
+    let input = if let Some(input_file) = input_file {
+        let input_file_path = Path::new(input_file);
+        if !input_file_path.exists() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "code, input or interactor not found",
+            )
+            .into());
+        }
 
+        Some(fs::read_to_string(input_file_path)?)
+    } else {
+        None
+    };
     let judge = InteractiveJudge::new(exec.into(), input, limit.clone(), interactor.into());
     let judge_result = judge.judge()?;
 
@@ -124,7 +136,7 @@ pub fn get_path_of_tankcell() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{JudgeStatus, compare::ValueCompare};
+    use crate::{compare::ValueCompare, JudgeStatus};
 
     #[test]
     fn normal_accept() -> Result<()> {
@@ -219,9 +231,9 @@ mod tests {
 
     #[test]
     fn interactive_accept() -> Result<()> {
-        let judge=InteractiveJudge::new(
+        let judge = InteractiveJudge::new(
             "./test_dep/interactive/solution".into(),
-            "???".into(),
+            "???".to_string().into(),
             LimitConfig {
                 time_limit: 1000,
                 memory_limit: 256,
