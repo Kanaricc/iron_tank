@@ -221,7 +221,7 @@ In short, `interactor` and user program are *directly* connected, they can inter
 This mode is used when
 
 * The next input comes from previous output.
-* You want to use the most powerful strategy to make things difficult for the user based on its output.(Oh, you are so bad~)
+* You want to choose the most powerful strategy to make things difficult for the user based on its output.
 * (You'll find a way to use it.)
 
 Command pattern:
