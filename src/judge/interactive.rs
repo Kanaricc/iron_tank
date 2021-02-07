@@ -99,6 +99,7 @@ impl Judge for InteractiveJudge {
             "failed to open stderr",
         ))?;
 
+        // channel switching inputs and outputs of interactor and user program
         let (sender, receiver) = channel();
 
         let csender = sender.clone();
@@ -117,10 +118,13 @@ impl Judge for InteractiveJudge {
                         vec.truncate(len);
                         csender.send(InteractiveMessage::UserOut(vec)).unwrap();
                     }
-                    Err(_err) => {
-                        println!("user reading error: {:?}", _err);
-                        // TODO:
-                        csender.send(InteractiveMessage::UserQuit).unwrap();
+                    Err(err) => {
+                        if let std::io::ErrorKind::BrokenPipe = err.kind(){
+                            // it seems like this error can be regarded that the program quits.
+                            csender.send(InteractiveMessage::UserQuit).unwrap();
+                        }else{
+                            panic!("error when trying reading from user program: {}",err);
+                        }
                     }
                 }
             }
@@ -141,9 +145,13 @@ impl Judge for InteractiveJudge {
                             .unwrap();
                     }
                     Err(err) => {
+                        if let std::io::ErrorKind::BrokenPipe = err.kind(){
+                            // it seems like this error can be regarded that the program quits.
+                            isender.send(InteractiveMessage::InteractorQuit).unwrap();
+                        }else{
+                            panic!("error when trying reading from interactor: {}",err);
+                        }
                         println!("interactor reading error: {:?}", err);
-                        // TODO:
-                        isender.send(InteractiveMessage::InteractorQuit).unwrap();
                     }
                 }
             }
@@ -162,10 +170,12 @@ impl Judge for InteractiveJudge {
                             .lock()
                             .unwrap()
                             .push(std::string::String::from_utf8(buf.clone()).unwrap());
-                        if let Err(_err) = iin.write_all(buf.as_slice()) {
-                            println!("interactor writing error: {:?}", _err);
-                            // TODO: handle err
-                            break;
+                        if let Err(err) = iin.write_all(buf.as_slice()) {
+                            if let std::io::ErrorKind::BrokenPipe = err.kind(){
+                                break;
+                            }else{
+                                panic!("error when trying writing to interactor: {}",err);
+                            }
                         }
                     }
                     InteractiveMessage::InteractorOut(buf) => {
@@ -173,18 +183,18 @@ impl Judge for InteractiveJudge {
                             .lock()
                             .unwrap()
                             .push(std::string::String::from_utf8(buf.clone()).unwrap());
-                        if let Err(_err) = cin.write_all(buf.as_slice()) {
-                            println!("user writing error: {:?}", _err);
-                            // TODO: handle err
-                            break;
+                        if let Err(err) = cin.write_all(buf.as_slice()) {
+                            if let std::io::ErrorKind::BrokenPipe = err.kind(){
+                                break;
+                            }else{
+                                panic!("error when trying writing to user program: {}",err);
+                            }
                         }
                     }
                     InteractiveMessage::UserQuit => {
-                        // TODO:
                         break;
                     }
                     InteractiveMessage::InteractorQuit => {
-                        // TODO:
                         break;
                     }
                 }
@@ -192,13 +202,16 @@ impl Judge for InteractiveJudge {
         });
 
         // wait for user quitting
+        // need not to kill user program when interactor quits first. it is seen as TLE
         let probe_res = probe.watching();
-        // interactor MUST quit before user, or it will be killed.
+        // notice broker just in case
         sender.send(InteractiveMessage::UserQuit).unwrap();
+        // interactor MUST quit before user, or it will be killed
         unsafe {
+            // maybe there is a more elegant way to do it
             kill(interactor_pid as i32, SIGKILL);
         }
-        // wait for broker
+        // wait for broker to quit
         broker.join().unwrap();
 
         // join output and input
