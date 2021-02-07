@@ -8,7 +8,7 @@ use crate::{
 };
 use std::fs;
 use std::path::Path;
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Clone)]
 pub struct LimitConfig {
     pub time_limit: u64,
     pub memory_limit: u64,

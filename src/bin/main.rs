@@ -1,7 +1,8 @@
 use clap::Clap;
-use iron_tank::{config::{ComparisionModeConfig, LimitConfig, ProblemConfig}, judge::{launch_normal_case_judge, launch_special_case_judge}};
+use iron_tank::error::{Error, Result};
 use iron_tank::{
-    error::{Error, Result},
+    config::{ComparisionModeConfig, LimitConfig, ProblemConfig},
+    judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
 };
 #[derive(Clap)]
 #[clap(
@@ -21,6 +22,8 @@ enum SubCommand {
     Normal(NormalJudgeConfig),
     #[clap(version = "0.1.0", about = "Judge in special mode")]
     Special(SpecialJudgeConfig),
+    #[clap(version = "0.1.0", about = "Judge in interactive mode")]
+    Interactive(InteractiveJudgeConfig),
     #[clap(version = "0.1.0", about = "Judge using config.yaml")]
     Prefab(PrefabJudgeConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
@@ -61,13 +64,27 @@ struct SpecialJudgeConfig {
     checker: String,
 }
 
-#[derive(Clap,Debug)]
-struct PrefabJudgeConfig{
-    #[clap(about = "problem config")]
-    config:String,
+#[derive(Clap, Debug)]
+struct InteractiveJudgeConfig {
+    #[clap(about = "interactor program path")]
+    interactor: String,
     #[clap(about = "path of program to run")]
     exec: String,
+    #[clap(short, about = "input file path")]
+    input_file: String,
+    #[clap(short, default_value = "1024", about = "memory limit(MB)")]
+    memory_limit: u64,
+    #[clap(short, default_value = "30000", about = "time limit(MS)")]
+    time_limit: u64,
     
+}
+
+#[derive(Clap, Debug)]
+struct PrefabJudgeConfig {
+    #[clap(about = "problem config")]
+    config: String,
+    #[clap(about = "path of program to run")]
+    exec: String,
 }
 
 #[derive(Clap, Debug)]
@@ -104,14 +121,26 @@ fn main() -> Result<()> {
                 &config.checker,
                 &LimitConfig {
                     time_limit: config.time_limit,
-                    memory_limit:config.memory_limit,
+                    memory_limit: config.memory_limit,
                 },
             )?;
             println!("{:#?}", judge_result);
         }
         SubCommand::Prefab(config) => {
-            let judge_result=ProblemConfig::from_file(&config.config)?.judge(&config.exec)?;
-            println!("{:#?}",judge_result);
+            let judge_result = ProblemConfig::from_file(&config.config)?.judge(&config.exec)?;
+            println!("{:#?}", judge_result);
+        }
+        SubCommand::Interactive(config) => {
+            let judge_result = launch_interactive_case_judge(
+                &config.exec,
+                &config.input_file,
+                &config.interactor,
+                &LimitConfig {
+                    time_limit: config.time_limit,
+                    memory_limit: config.memory_limit,
+                },
+            );
+            println!("{:#?}", judge_result);
         }
         SubCommand::Debug => {}
     }

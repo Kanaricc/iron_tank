@@ -212,6 +212,7 @@ impl RemoteSniffer for OpentrainsJudgeSniffer {
                 status: status,
                 time: None,
                 memory: None,
+                stdin:None,
                 stdout: None,
                 stderr: None,
             });
@@ -221,6 +222,7 @@ impl RemoteSniffer for OpentrainsJudgeSniffer {
                 status: JudgeStatus::ComplierError,
                 time: None,
                 memory: None,
+                stdin:None,
                 stdout: None,
                 stderr: None,
             });
