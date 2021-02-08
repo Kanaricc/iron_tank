@@ -1,5 +1,8 @@
 use clap::Clap;
-use tank_core::error::{Error,Result};
+use tank_core::{
+    compile::CompiledProgram,
+    error::{Error, Result},
+};
 use tank_core::{
     config::{ComparisionModeConfig, LimitConfig, ProblemConfig},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
@@ -76,7 +79,6 @@ struct InteractiveJudgeConfig {
     memory_limit: u64,
     #[clap(short, default_value = "30000", about = "time limit(MS)")]
     time_limit: u64,
-    
 }
 
 #[derive(Clap, Debug)]
@@ -91,7 +93,6 @@ struct PrefabJudgeConfig {
 struct DebugJudge {}
 
 fn main() -> Result<()> {
-
     let opts: Opts = Opts::parse();
 
     match opts.subcmd {
@@ -104,10 +105,10 @@ fn main() -> Result<()> {
             };
 
             let judge_result = launch_normal_case_judge(
-                &config.exec,
+                CompiledProgram::new(config.exec),
                 &config.input_file,
                 &config.answer_file,
-                &LimitConfig {
+                LimitConfig {
                     time_limit: config.time_limit,
                     memory_limit: config.memory_limit,
                 },
@@ -117,10 +118,10 @@ fn main() -> Result<()> {
         }
         SubCommand::Special(config) => {
             let judge_result = launch_special_case_judge(
-                &config.exec,
+                CompiledProgram::new(config.exec),
                 &config.input_file,
                 &config.checker,
-                &LimitConfig {
+                LimitConfig {
                     time_limit: config.time_limit,
                     memory_limit: config.memory_limit,
                 },
@@ -133,10 +134,10 @@ fn main() -> Result<()> {
         }
         SubCommand::Interactive(config) => {
             let judge_result = launch_interactive_case_judge(
-                &config.exec,
+                CompiledProgram::new(config.exec),
                 config.input_file,
                 &config.interactor,
-                &LimitConfig {
+                LimitConfig {
                     time_limit: config.time_limit,
                     memory_limit: config.memory_limit,
                 },
