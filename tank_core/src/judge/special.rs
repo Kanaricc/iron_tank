@@ -6,12 +6,10 @@ use std::{
 };
 
 use super::{get_path_of_tankcell, Judge};
-use crate::{
-    config::LimitConfig, error::Error, error::Result, probe::ProcessProbe, JudgeResult, JudgeStatus,
-};
+use crate::{JudgeResult, JudgeStatus, compile::CompiledProgram, config::LimitConfig, error::Error, error::Result, probe::ProcessProbe};
 
 pub struct SpecialJudge {
-    exec: String,
+    program: CompiledProgram,
     input: String,
     limit: LimitConfig,
     checker: String,
@@ -19,14 +17,14 @@ pub struct SpecialJudge {
 
 impl SpecialJudge {
     pub fn new(
-        exec: String,
+        program: CompiledProgram,
         input: String,
         memory_limit: u64,
         time_limit: u64,
         checker: String,
     ) -> Self {
         Self {
-            exec,
+            program,
             input,
             limit: LimitConfig {
                 memory_limit,
@@ -39,7 +37,7 @@ impl SpecialJudge {
 
 impl Judge for SpecialJudge {
     fn judge(self) -> Result<JudgeResult> {
-        let path = Path::new(&self.exec);
+        let path = Path::new(&self.program.path);
 
         let path = fs::canonicalize(path)
             .unwrap()
@@ -52,6 +50,8 @@ impl Judge for SpecialJudge {
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
+            .arg("--")
+            .args(self.program.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

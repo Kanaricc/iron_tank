@@ -7,12 +7,12 @@ use std::{
 
 use super::{get_path_of_tankcell, Judge};
 use crate::{
-    compare::ComparisionMode, config::LimitConfig, error::Result, probe::ProcessProbe, JudgeResult,
-    JudgeStatus,
+    compare::ComparisionMode, compile::CompiledProgram, config::LimitConfig, error::Result,
+    probe::ProcessProbe, JudgeResult, JudgeStatus,
 };
 
 pub struct NormalJudge {
-    exec: String,
+    program: CompiledProgram,
     input: String,
     answer: String,
     limit: LimitConfig,
@@ -21,7 +21,7 @@ pub struct NormalJudge {
 
 impl NormalJudge {
     pub fn new(
-        exec: String,
+        program: CompiledProgram,
         input: String,
         answer: String,
         memory_limit: u64,
@@ -29,7 +29,7 @@ impl NormalJudge {
         comparation: Box<dyn ComparisionMode>,
     ) -> Self {
         Self {
-            exec,
+            program,
             input,
             answer,
             limit: LimitConfig {
@@ -43,7 +43,7 @@ impl NormalJudge {
 
 impl Judge for NormalJudge {
     fn judge(self) -> Result<JudgeResult> {
-        let path = Path::new(&self.exec);
+        let path = Path::new(&self.program.path);
 
         let path = fs::canonicalize(path)
             .unwrap()
@@ -56,6 +56,8 @@ impl Judge for NormalJudge {
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
+            .arg("--")
+            .args(self.program.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

@@ -94,7 +94,9 @@ impl Compiler for CompilerGPP{
         if probe.get_status()!=0{
             CompileResult::CompileError
         }else{
-            CompileResult::OK(CompiledProgram::Executable(exec_path.to_str().unwrap().to_string()))
+            CompileResult::OK(CompiledProgram::new(
+                exec_path.to_str().unwrap().to_string()
+            ))
         }
     }
 }

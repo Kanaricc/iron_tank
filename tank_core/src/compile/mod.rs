@@ -14,11 +14,24 @@ pub enum CompilerEnvironmentStatus {
     Missing,
 }
 
-pub enum CompiledProgram{
-    Executable(String),
-    Interpretive{
-        interpretor:String,
-        program:String,
+pub struct CompiledProgram {
+    pub path: String,
+    pub args: Vec<String>,
+}
+
+impl CompiledProgram{
+    pub fn new(path:String)->Self{
+        Self{
+            path,
+            args: Vec::new(),
+        }
+    }
+
+    pub fn new_with_args(path:String,args:Vec<String>)->Self{
+        Self{
+            path,
+            args,
+        }
     }
 }
 
