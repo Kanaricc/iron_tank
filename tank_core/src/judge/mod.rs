@@ -2,28 +2,26 @@ mod interactive;
 mod normal;
 mod special;
 
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::Path,
+};
 
 use self::{interactive::InteractiveJudge, normal::NormalJudge, special::SpecialJudge};
-use crate::{
-    compare::ComparisionMode,
-    config::{ComparisionModeConfig, LimitConfig},
-    error::Result,
-    JudgeResult,
-};
+use crate::{JudgeResult, compare::ComparisionMode, compile::CompiledProgram, config::{ComparisionModeConfig, LimitConfig}, error::Result};
 
 pub trait Judge {
     fn judge(self) -> Result<JudgeResult>;
 }
 
 pub fn launch_normal_case_judge(
-    exec: &str,
+    program: CompiledProgram,
     input_file: &str,
     answer_file: &str,
-    limit: &LimitConfig,
+    limit: LimitConfig,
     comparision_mode: &ComparisionModeConfig,
 ) -> Result<JudgeResult> {
-    let path = Path::new(exec);
+    let path = Path::new(&program.path);
     let input_file_path = Path::new(input_file);
     let answer_file_path = Path::new(answer_file);
 
@@ -41,7 +39,7 @@ pub fn launch_normal_case_judge(
     let comparation: Box<dyn ComparisionMode> = comparision_mode.into();
 
     let judge = NormalJudge::new(
-        exec.into(),
+        program,
         input,
         answer,
         limit.memory_limit,
@@ -54,12 +52,12 @@ pub fn launch_normal_case_judge(
 }
 
 pub fn launch_special_case_judge(
-    exec: &str,
+    program: CompiledProgram,
     input_file: &str,
     checker: &str,
-    limit: &LimitConfig,
+    limit: LimitConfig,
 ) -> Result<JudgeResult> {
-    let path = Path::new(exec);
+    let path = Path::new(&program.path);
     let input_file_path = Path::new(input_file);
     let checker_path = Path::new(checker);
 
@@ -74,7 +72,7 @@ pub fn launch_special_case_judge(
     let input = fs::read_to_string(input_file_path)?;
 
     let judge = SpecialJudge::new(
-        exec.into(),
+        program,
         input,
         limit.memory_limit,
         limit.time_limit,
@@ -86,12 +84,12 @@ pub fn launch_special_case_judge(
 }
 
 pub fn launch_interactive_case_judge(
-    exec: &str,
+    program: CompiledProgram,
     input_file: Option<String>,
     interactor: &str,
-    limit: &LimitConfig,
+    limit: LimitConfig,
 ) -> Result<JudgeResult> {
-    let path = Path::new(exec);
+    let path = Path::new(&program.path);
 
     let interactor_path = Path::new(interactor);
 
@@ -117,7 +115,7 @@ pub fn launch_interactive_case_judge(
     } else {
         None
     };
-    let judge = InteractiveJudge::new(exec.into(), input, limit.clone(), interactor.into());
+    let judge = InteractiveJudge::new(program, input, limit, interactor.into());
     let judge_result = judge.judge()?;
 
     Ok(judge_result)
@@ -140,9 +138,10 @@ mod tests {
 
     #[test]
     fn normal_accept() -> Result<()> {
+        println!("{}",get_path_of_tankcell());
         // TODO: input with no backspace at end may cause the program waiting for input forever
         let judge = NormalJudge::new(
-            "./test_dep/times2".into(),
+            CompiledProgram::new("../test_dep/times2".into()),
             "12\n".into(),
             "24".into(),
             256,
@@ -163,7 +162,7 @@ mod tests {
     fn normal_wrong_answer() -> Result<()> {
         println!("trying testing correct code");
         let judge = NormalJudge::new(
-            "./test_dep/times2".into(),
+            CompiledProgram::new("../test_dep/times2".into()),
             "12\n".into(),
             "surprise!".into(),
             256,
@@ -181,7 +180,7 @@ mod tests {
     #[test]
     fn normal_time_limit_exceeded() -> Result<()> {
         let judge = NormalJudge::new(
-            "./test_dep/tle".into(),
+            CompiledProgram::new("../test_dep/tle".into()),
             "".into(),
             "".into(),
             256,
@@ -199,7 +198,7 @@ mod tests {
     #[test]
     fn normal_memory_limit_exceeded() -> Result<()> {
         let judge = NormalJudge::new(
-            "./test_dep/mle".into(),
+            CompiledProgram::new("../test_dep/mle".into()),
             "".into(),
             "".into(),
             256,
@@ -218,7 +217,7 @@ mod tests {
     #[should_panic]
     fn normal_invalid_path() {
         let judge = NormalJudge::new(
-            "./test_dep/whatever".into(),
+            CompiledProgram::new("../test_dep/whatever".into()),
             "".into(),
             "".into(),
             256,
@@ -232,13 +231,13 @@ mod tests {
     #[test]
     fn interactive_accept() -> Result<()> {
         let judge = InteractiveJudge::new(
-            "./test_dep/interactive/solution".into(),
+            CompiledProgram::new("../test_dep/interactive/solution".into()),
             "???".to_string().into(),
             LimitConfig {
                 time_limit: 1000,
                 memory_limit: 256,
             },
-            "./test_dep/interactive/interactor".into(),
+            "../test_dep/interactive/interactor".into(),
         );
         let result = judge.judge()?;
         println!("{:?}", result.status);

@@ -1,11 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare},
-    error::Result,
-    judge::{launch_normal_case_judge, launch_special_case_judge},
-    JudgeResult,
-};
+use crate::{JudgeResult, compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare}, compile::CompiledProgram, error::Result, judge::{launch_normal_case_judge, launch_special_case_judge}};
 use std::fs;
 use std::path::Path;
 #[derive(Debug, Serialize, Deserialize,Clone)]
@@ -122,17 +117,17 @@ impl ProblemConfig {
         for case in self.cases.iter() {
             let judge_result = match &self.judge_mode {
                 JudgeModeConfig::Normal { comparision_mode } => launch_normal_case_judge(
-                    exec,
+                    CompiledProgram::new(exec.into()),
                     self.find_relative_path(&case.inputfile_path).as_str(),
                     self.find_relative_path(&case.answerfile_path.as_ref().unwrap()).as_str(),
-                    &self.limit_config,
+                    self.limit_config.clone(),
                     comparision_mode,
                 ),
                 JudgeModeConfig::Special { checker } => launch_special_case_judge(
-                    &exec,
+                    CompiledProgram::new(exec.into()),
                     self.find_relative_path(&case.inputfile_path).as_str(),
                     self.find_relative_path(&checker).as_str(),
-                    &self.limit_config,
+                    self.limit_config.clone(),
                 ),
             }?;
 
@@ -161,7 +156,7 @@ mod tests {
                 inputfile_path: "in".into(),
                 answerfile_path: "out".to_string().into(),
             }],
-            path: "./test_dep/problem".into(),
+            path: "../test_dep/problem".into(),
         };
         let s = serde_yaml::to_string(&problem).unwrap();
         println!("{}", s);
@@ -169,12 +164,12 @@ mod tests {
 
     #[test]
     fn deserialize(){
-        let _problem=ProblemConfig::from_file("./test_dep/problem/problem.yaml").unwrap();
+        let _problem=ProblemConfig::from_file("../test_dep/problem/problem.yaml").unwrap();
     }
 
     #[test]
     fn multi_cases_judge(){
-        let problem=ProblemConfig::from_file("./test_dep/problem/problem.yaml").unwrap();
-        println!("{:#?}",problem.judge("./test_dep/normal"));
+        let problem=ProblemConfig::from_file("../test_dep/problem/problem.yaml").unwrap();
+        println!("{:#?}",problem.judge("../test_dep/normal"));
     }
 }

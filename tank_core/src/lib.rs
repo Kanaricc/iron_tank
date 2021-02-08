@@ -4,6 +4,7 @@ pub mod probe;
 pub mod judge;
 pub mod config;
 pub mod compile;
+mod container;
 
 #[derive(Debug)]
 pub struct JudgeResult {
