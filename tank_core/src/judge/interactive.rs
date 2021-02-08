@@ -6,9 +6,7 @@ use std::{
     thread,
 };
 
-use crate::{
-    config::LimitConfig, error::Error, error::Result, probe::ProcessProbe, JudgeResult, JudgeStatus,
-};
+use crate::{JudgeResult, JudgeStatus, compile::CompiledProgram, config::LimitConfig, error::Error, error::Result, probe::ProcessProbe};
 
 use super::{get_path_of_tankcell, Judge};
 
@@ -17,7 +15,7 @@ use std::io::{Write,Read};
 use libc::*;
 
 pub struct InteractiveJudge {
-    exec: String,
+    program: CompiledProgram,
     input: Option<String>,
     limit: LimitConfig,
     interactor: String,
@@ -31,9 +29,9 @@ enum InteractiveMessage {
 }
 
 impl InteractiveJudge {
-    pub fn new(exec: String, input: Option<String>, limit: LimitConfig, interactor: String) -> Self {
+    pub fn new(program: CompiledProgram, input: Option<String>, limit: LimitConfig, interactor: String) -> Self {
         Self {
-            exec,
+            program,
             input,
             limit,
             interactor,
@@ -77,7 +75,7 @@ impl Judge for InteractiveJudge {
             "failed to open stderr for interactor",
         ))?;
 
-        let path = Path::new(&self.exec);
+        let path = Path::new(&self.program.path);
         let path = fs::canonicalize(path)
             .unwrap()
             .to_str()
@@ -89,6 +87,8 @@ impl Judge for InteractiveJudge {
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
+            .arg("--")
+            .args(self.program.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

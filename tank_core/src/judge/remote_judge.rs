@@ -232,7 +232,6 @@ impl RemoteSniffer for OpentrainsJudgeSniffer {
     }
 }
 
-#[cfg(test)]
 mod tests {
     use select::{
         document::Document,

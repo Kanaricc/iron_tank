@@ -7,39 +7,43 @@ use std::{
 
 use super::{get_path_of_tankcell, Judge};
 use crate::{
-    config::LimitConfig, error::Error, error::Result, probe::ProcessProbe, JudgeResult, JudgeStatus,
+    compare::ComparisionMode, compile::CompiledProgram, config::LimitConfig, error::Result,
+    probe::ProcessProbe, JudgeResult, JudgeStatus,
 };
 
-pub struct SpecialJudge {
-    exec: String,
+pub struct NormalJudge {
+    program: CompiledProgram,
     input: String,
+    answer: String,
     limit: LimitConfig,
-    checker: String,
+    comparation: Box<dyn ComparisionMode>,
 }
 
-impl SpecialJudge {
+impl NormalJudge {
     pub fn new(
-        exec: String,
+        program: CompiledProgram,
         input: String,
+        answer: String,
         memory_limit: u64,
         time_limit: u64,
-        checker: String,
+        comparation: Box<dyn ComparisionMode>,
     ) -> Self {
         Self {
-            exec,
+            program,
             input,
+            answer,
             limit: LimitConfig {
-                memory_limit,
-                time_limit,
+                time_limit: time_limit,
+                memory_limit: memory_limit,
             },
-            checker,
+            comparation,
         }
     }
 }
 
-impl Judge for SpecialJudge {
+impl Judge for NormalJudge {
     fn judge(self) -> Result<JudgeResult> {
-        let path = Path::new(&self.exec);
+        let path = Path::new(&self.program.path);
 
         let path = fs::canonicalize(path)
             .unwrap()
@@ -52,6 +56,8 @@ impl Judge for SpecialJudge {
             .arg(format!("-m {}", self.limit.memory_limit))
             .arg(format!("-t {}", self.limit.time_limit))
             .arg("-p minimum")
+            .arg("--")
+            .args(self.program.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -65,7 +71,7 @@ impl Judge for SpecialJudge {
             std::io::ErrorKind::BrokenPipe,
             "failed to open stdin",
         ))?;
-        cin.write_all(self.input.as_bytes())?;
+        cin.write_all(self.input.into_bytes().as_slice())?;
         cin.flush()?;
 
         let cout = command.stdout.as_mut().ok_or(std::io::Error::new(
@@ -94,41 +100,13 @@ impl Judge for SpecialJudge {
             // even we give two times more of it.
             JudgeStatus::MemoryLimitExceeded
         } else if probe_res.get_status() != 0 {
-            println!("{:?}", probe_res);
             JudgeStatus::RuntimeError
         } else {
             JudgeStatus::Uncertain
         };
 
-        let temp_dir = tempfile::TempDir::new()?;
-        let input_tpath = temp_dir.path().join("input.txt");
-        let output_tpath = temp_dir.path().join("output.txt");
-
-        fs::write(&input_tpath, &self.input)?;
-        fs::write(&output_tpath, &output)?;
-
-        let checker_fullpath = fs::canonicalize(self.checker).unwrap();
-        let checker_fullpath = Path::new(&checker_fullpath);
-
-        let check = Command::new(checker_fullpath)
-            .arg(input_tpath.to_str().unwrap())
-            .arg(output_tpath.to_str().unwrap())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .output()
-            .unwrap();
-
-        let checker_output = check.stdout;
-        let checker_output = String::from_utf8(checker_output)?;
-        let checker_output: Vec<&str> = checker_output.lines().map(|f| f.trim()).collect();
-
         if let JudgeStatus::Uncertain = judge_status {
-            judge_status = match checker_output[0] {
-                "same" => JudgeStatus::Accept,
-                "different" => JudgeStatus::WrongAnswer,
-                "pattern_different" => JudgeStatus::PresentationError,
-                _ => Err(Error::Checker("checker gives unknown result".into()))?,
-            }
+            judge_status = self.comparation.compare(&self.answer, &output).into();
         }
 
         let judge_result = JudgeResult {
@@ -139,6 +117,7 @@ impl Judge for SpecialJudge {
             stdout: output.into(),
             stderr: errout.into(),
         };
+
         Ok(judge_result)
     }
 }

@@ -13,6 +13,7 @@ pub enum Error{
     },
     FromUtf8(string::FromUtf8Error),
     Request(reqwest::Error),
+    Environment(String),
 }
 
 impl From<std::io::Error> for Error{
