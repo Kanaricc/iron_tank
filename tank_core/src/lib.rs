@@ -3,7 +3,6 @@ pub mod error;
 pub mod probe;
 pub mod judge;
 pub mod remote_judge;
-pub mod server;
 pub mod config;
 
 #[derive(Debug)]

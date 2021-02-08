@@ -1,0 +1,18 @@
+[package]
+name = "tank_core"
+version = "0.1.0"
+authors = ["Kanari <iovo7c@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libc = "0.2.82"
+tempfile = "3.2"
+reqwest = { version = "0.11", features=["multipart", "blocking"] }
+
+regex = "1"
+select = "0.5"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"

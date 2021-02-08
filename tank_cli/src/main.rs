@@ -1,6 +1,6 @@
 use clap::Clap;
-use iron_tank::error::{Error, Result};
-use iron_tank::{
+use tank_core::error::{Error,Result};
+use tank_core::{
     config::{ComparisionModeConfig, LimitConfig, ProblemConfig},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
 };
