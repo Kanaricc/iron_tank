@@ -4,7 +4,7 @@ use std::io::{Write};
 
 use crate::{error::{Error,Result}, judge::get_path_of_tankcell, probe::ProcessProbe};
 
-use super::{CompileResult, Compiler, CompilerEnvironmentStatus};
+use super::{CompileResult, CompiledProgram, Compiler, CompilerEnvironmentStatus};
 
 pub struct CompilerGPP {
     temp_dir: tempfile::TempDir,
@@ -94,7 +94,7 @@ impl Compiler for CompilerGPP{
         if probe.get_status()!=0{
             CompileResult::CompileError
         }else{
-            CompileResult::OK
+            CompileResult::OK(CompiledProgram::Executable(exec_path.to_str().unwrap().to_string()))
         }
     }
 }
@@ -146,7 +146,7 @@ mod tests {
     fn gpp_compile_ok()->Result<()>{
         let src="#include <iostream> \n int main(){std::cout<<\"hi\"<<std::endl;}";
         let compiler=CompilerGPP::new()?;
-        assert!(matches!(compiler.compile(src.into()),CompileResult::OK));
+        assert!(matches!(compiler.compile(src.into()),CompileResult::OK(_)));
 
         Ok(())
     }

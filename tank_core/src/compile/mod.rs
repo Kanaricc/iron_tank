@@ -1,6 +1,7 @@
 use crate::JudgeStatus;
 
 mod gpp;
+mod python;
 
 pub trait Compiler {
     fn compile(&self, src: String) -> CompileResult;
@@ -13,8 +14,16 @@ pub enum CompilerEnvironmentStatus {
     Missing,
 }
 
+pub enum CompiledProgram{
+    Executable(String),
+    Interpretive{
+        interpretor:String,
+        program:String,
+    }
+}
+
 pub enum CompileResult {
-    OK,
+    OK(CompiledProgram),
     LimitExceeded,
     CompileError, // TODO: add info
 }
@@ -22,7 +31,7 @@ pub enum CompileResult {
 impl From<&CompileResult> for JudgeStatus {
     fn from(v: &CompileResult) -> Self {
         match v {
-            CompileResult::OK => JudgeStatus::Uncertain,
+            CompileResult::OK(_) => JudgeStatus::Uncertain,
             CompileResult::LimitExceeded => JudgeStatus::ComplierLimitExceeded,
             CompileResult::CompileError => JudgeStatus::ComplierError,
         }
