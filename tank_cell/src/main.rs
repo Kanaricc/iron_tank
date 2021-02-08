@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ptr::null};
+use std::{collections::HashSet, ffi::CString, ptr::null};
 
 use clap::{App, Arg};
 use libc::*;
@@ -55,14 +55,17 @@ fn main() {
     }
     let file_name = path.file_name().unwrap().to_str().unwrap();
 
-    // construct parameters passed to exec
-    let mut raw_params: Vec<*const i8> = cmd
+    let raw_params_store: Vec<CString> = cmd
         .values_of("raw")
         .unwrap_or_default()
-        .map(|f| f.as_ptr() as *const i8)
+        .map(|f| f.to_string())
+        .map(|f| CString::new(f).unwrap())
         .collect();
-    raw_params.insert(0, file_name.as_ptr() as *const i8);
-    raw_params.push(null::<i8>());
+    // construct parameters passed to exec
+    let mut raw_params: Vec<*const i8> = raw_params_store.iter().map(|f| f.as_ptr()).collect();
+    let file_name = CString::new(file_name).unwrap();
+    raw_params.insert(0, file_name.as_ptr());
+    raw_params.push(null());
 
     // set memory and time limit
     if let Some(memory_limit) = cmd.value_of("memory_limit") {
@@ -80,7 +83,11 @@ fn main() {
         let context = seccomp_init(SCMP_ACT_KILL);
 
         // load minimum rules which make sure the simplest code can run without problem
-        let rules: HashSet<&str> = cmd.values_of("permission").unwrap().map(|f|f.trim()).collect();
+        let rules: HashSet<&str> = cmd
+            .values_of("permission")
+            .unwrap()
+            .map(|f| f.trim())
+            .collect();
         if rules.contains("minimum") {
             load_minimum_rules(context);
         }
@@ -103,7 +110,9 @@ fn main() {
             },
         );
 
-        assert!(seccomp_load(context) == 0);
+        if !rules.contains("full") {
+            assert!(seccomp_load(context) == 0);
+        }
 
         libc::execvp(exe, raw_params);
     }
