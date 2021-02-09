@@ -55,6 +55,8 @@ struct NormalJudgeConfig {
 
 #[derive(Clap, Debug)]
 struct SpecialJudgeConfig {
+    #[clap(about = "checker program path")]
+    checker: String,
     #[clap(about = "path of program to run")]
     exec: String,
     #[clap(short, about = "input file path")]
@@ -63,8 +65,6 @@ struct SpecialJudgeConfig {
     memory_limit: u64,
     #[clap(short, default_value = "30000", about = "time limit(MS)")]
     time_limit: u64,
-    #[clap(short, about = "checker program path")]
-    checker: String,
 }
 
 #[derive(Clap, Debug)]
