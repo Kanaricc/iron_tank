@@ -1,8 +1,9 @@
+use core::panic;
+use std::{fs, path::Path};
+
 use clap::Clap;
-use tank_core::{
-    compile::CompiledProgram,
-    error::{Error, Result},
-};
+use compile::CompilerDescriptor;
+use tank_core::{compile::{self, CompileResult, CompiledProgram, Compiler}, error::{Error, Result}};
 use tank_core::{
     config::{ComparisionModeConfig, LimitConfig, ProblemConfig},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
@@ -22,6 +23,8 @@ struct Opts {
 #[derive(Clap)]
 enum SubCommand {
     #[clap(version = "0.1.0", about = "Judge in normal mode")]
+    Compile(CompileConfig),
+    #[clap(version = "0.1.0", about = "Judge in normal mode")]
     Normal(NormalJudgeConfig),
     #[clap(version = "0.1.0", about = "Judge in special mode")]
     Special(SpecialJudgeConfig),
@@ -31,6 +34,12 @@ enum SubCommand {
     Prefab(PrefabJudgeConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
+}
+
+#[derive(Clap, Debug)]
+struct CompileConfig{
+    #[clap(about = "path of source")]
+    file:String,
 }
 
 #[derive(Clap, Debug)]
@@ -104,8 +113,10 @@ fn main() -> Result<()> {
                 _ => Err(Error::Argument("comparation mode not found".into()))?,
             };
 
+            let compiler=compile(&config.exec);
+
             let judge_result = launch_normal_case_judge(
-                CompiledProgram::new(config.exec),
+                compiler.1,
                 &config.input_file,
                 &config.answer_file,
                 LimitConfig {
@@ -117,8 +128,10 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Special(config) => {
+            let compiler=compile(&config.exec);
+
             let judge_result = launch_special_case_judge(
-                CompiledProgram::new(config.exec),
+                compiler.1,
                 &config.input_file,
                 &config.checker,
                 LimitConfig {
@@ -129,12 +142,17 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Prefab(config) => {
-            let judge_result = ProblemConfig::from_file(&config.config)?.judge(&config.exec)?;
+            let compiler=compile(&config.exec);
+            
+            // TOOD: judge should use compiledprogram instead of str
+            let judge_result = ProblemConfig::from_file(&config.config)?.judge(compiler.1)?;
             println!("{:#?}", judge_result);
         }
         SubCommand::Interactive(config) => {
+            let compiler=compile(&config.exec);
+            
             let judge_result = launch_interactive_case_judge(
-                CompiledProgram::new(config.exec),
+                compiler.1,
                 config.input_file,
                 &config.interactor,
                 LimitConfig {
@@ -145,7 +163,32 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Debug => {}
+        SubCommand::Compile(config) => {
+            let _compiler=compile(&config.file);
+        }
     }
 
     Ok(())
+}
+
+fn compile(file:&str)->(Box<dyn Compiler>,CompiledProgram){
+    let path=Path::new(file);
+    let src=fs::read_to_string(path.canonicalize().unwrap()).unwrap();
+    let extension=path.extension().unwrap().to_str().unwrap();
+
+    let compiler;
+    let result;
+    match extension {
+        _ if compile::gpp::CompilerGPP::support_sufix().contains(&extension)=>{
+            compiler=compile::gpp::CompilerGPP::new().unwrap();
+            result=compiler.compile(src);
+        }
+        _=>unimplemented!()
+    }
+
+    if let CompileResult::OK(program)=result{
+        return (Box::new(compiler),program);
+    }else{
+        panic!("failed to compile file `{}`: {:#?}",file,result);
+    }
 }
