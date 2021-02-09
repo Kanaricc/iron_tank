@@ -152,7 +152,7 @@ This mode is used when
 Command pattern:
 
 ```bash
-$ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-limit>
+$ iron_tank special <checker> <exec> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
 * `<exec>`, the path of program to be run.
