@@ -15,5 +15,8 @@ int main(){
         vec.push_back(i*i);
     }
 
+    int a;cin>>a;
+    cout<<vec[0]+a*2<<endl;
+
     return 0;
 }
