@@ -4,7 +4,7 @@ use std::io::{Write};
 
 use crate::{error::{Error,Result}, judge::get_path_of_tankcell, probe::ProcessProbe};
 
-use super::{CompileResult, CompiledProgram, Compiler, CompilerEnvironmentStatus};
+use super::{CompileResult, CompiledProgram, Compiler, CompilerDescriptor, CompilerEnvironmentStatus};
 
 pub struct CompilerGPP {
     temp_dir: tempfile::TempDir,
@@ -27,7 +27,10 @@ impl From<GPPStandard> for String{
     }
 }
 
-impl Compiler for CompilerGPP{
+impl CompilerDescriptor for CompilerGPP{
+    fn support_sufix()->Vec<&'static str> {
+        vec!["cpp","cxx"]
+    }
     fn check_environment() -> CompilerEnvironmentStatus {
         // TODO: check whether chosen standard is supported or not
         let path = which::which("g++");
@@ -49,7 +52,9 @@ impl Compiler for CompilerGPP{
             Err(_) => CompilerEnvironmentStatus::Missing,
         }
     }
+}
 
+impl Compiler for CompilerGPP{
     fn compile(&self, src: String) ->CompileResult{
         let code_path = self.temp_dir.path().join("src.cpp");
         let exec_path = self.temp_dir.path().join("exec");
@@ -89,7 +94,6 @@ impl Compiler for CompilerGPP{
         command.stderr.unwrap().read_to_string(&mut stderr).unwrap();
 
         // TODO: handle limit
-        println!("stat:{:?}\nout:{}\nerr:{}",probe,stdout,stderr);
 
         if probe.get_status()!=0{
             CompileResult::CompileError
@@ -98,7 +102,7 @@ impl Compiler for CompilerGPP{
                 exec_path.to_str().unwrap().to_string()
             ))
         }
-    }
+    }   
 }
 
 impl CompilerGPP {

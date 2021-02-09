@@ -94,7 +94,6 @@ impl Judge for SpecialJudge {
             // even we give two times more of it.
             JudgeStatus::MemoryLimitExceeded
         } else if probe_res.get_status() != 0 {
-            println!("{:?}", probe_res);
             JudgeStatus::RuntimeError
         } else {
             JudgeStatus::Uncertain

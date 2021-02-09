@@ -4,7 +4,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use super::{CompileResult, CompiledProgram, Compiler, CompilerEnvironmentStatus};
+use super::{CompileResult, CompiledProgram, Compiler, CompilerDescriptor, CompilerEnvironmentStatus};
 use crate::error::{Error, Result};
 
 pub struct CompilerPython {
@@ -24,20 +24,9 @@ impl CompilerPython {
     }
 }
 
-impl Compiler for CompilerPython {
-    fn compile(&self, src: String) -> super::CompileResult {
-        let code_path = self.temp_dir.path().join("src.cpp");
-
-        {
-            let mut file = File::create(&code_path).unwrap();
-            file.write_all(&src.into_bytes()).unwrap();
-            file.sync_all().unwrap();
-        }
-
-        CompileResult::OK(CompiledProgram::new_with_args(
-            self.compiler_path.clone(),
-            vec![code_path.to_string_lossy().to_string()],
-        ))
+impl CompilerDescriptor for CompilerPython{
+    fn support_sufix()->Vec<&'static str> {
+        vec!["py"]
     }
 
     fn check_environment() -> super::CompilerEnvironmentStatus {
@@ -59,5 +48,22 @@ impl Compiler for CompilerPython {
             }
             Err(_) => CompilerEnvironmentStatus::Missing,
         }
+    }
+}
+
+impl Compiler for CompilerPython {
+    fn compile(&self, src: String) -> super::CompileResult {
+        let code_path = self.temp_dir.path().join("src.cpp");
+
+        {
+            let mut file = File::create(&code_path).unwrap();
+            file.write_all(&src.into_bytes()).unwrap();
+            file.sync_all().unwrap();
+        }
+
+        CompileResult::OK(CompiledProgram::new_with_args(
+            self.compiler_path.clone(),
+            vec![code_path.to_string_lossy().to_string()],
+        ))
     }
 }
