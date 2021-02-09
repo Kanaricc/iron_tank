@@ -10,7 +10,7 @@ use tank_core::{
 };
 #[derive(Clap)]
 #[clap(
-    version = "0.1.1",
+    version = "0.2.0",
     name = "Iron Tank",
     author = "Kanari <iovo7c@gmail.com>",
     about = "A fast and reliable judge container wrtten in Rust."
@@ -22,15 +22,15 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
-    #[clap(version = "0.1.0", about = "Judge in normal mode")]
+    #[clap(version = "0.2.0", about = "Judge in normal mode")]
     Compile(CompileConfig),
-    #[clap(version = "0.1.0", about = "Judge in normal mode")]
+    #[clap(version = "0.2.0", about = "Judge in normal mode")]
     Normal(NormalJudgeConfig),
-    #[clap(version = "0.1.0", about = "Judge in special mode")]
+    #[clap(version = "0.2.0", about = "Judge in special mode")]
     Special(SpecialJudgeConfig),
-    #[clap(version = "0.1.0", about = "Judge in interactive mode")]
+    #[clap(version = "0.2.0", about = "Judge in interactive mode")]
     Interactive(InteractiveJudgeConfig),
-    #[clap(version = "0.1.0", about = "Judge using config.yaml")]
+    #[clap(version = "0.2.0", about = "Judge using config.yaml")]
     Prefab(PrefabJudgeConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
@@ -44,8 +44,8 @@ struct CompileConfig{
 
 #[derive(Clap, Debug)]
 struct NormalJudgeConfig {
-    #[clap(about = "path of program to run")]
-    exec: String,
+    #[clap(about = "path of code")]
+    src_path: String,
     #[clap(short, about = "input file path")]
     input_file: String,
     #[clap(short, about = "answer file path")]
@@ -66,8 +66,8 @@ struct NormalJudgeConfig {
 struct SpecialJudgeConfig {
     #[clap(about = "checker program path")]
     checker: String,
-    #[clap(about = "path of program to run")]
-    exec: String,
+    #[clap(about = "path of code")]
+    src_path: String,
     #[clap(short, about = "input file path")]
     input_file: String,
     #[clap(short, default_value = "1024", about = "memory limit(MB)")]
@@ -78,10 +78,10 @@ struct SpecialJudgeConfig {
 
 #[derive(Clap, Debug)]
 struct InteractiveJudgeConfig {
-    #[clap(about = "interactor program path")]
+    #[clap(about = "interactor code")]
     interactor: String,
     #[clap(about = "path of program to run")]
-    exec: String,
+    src_path: String,
     #[clap(short, about = "input file path")]
     input_file: Option<String>,
     #[clap(short, default_value = "1024", about = "memory limit(MB)")]
@@ -94,8 +94,8 @@ struct InteractiveJudgeConfig {
 struct PrefabJudgeConfig {
     #[clap(about = "problem config")]
     config: String,
-    #[clap(about = "path of program to run")]
-    exec: String,
+    #[clap(about = "path of code")]
+    src_path: String,
 }
 
 #[derive(Clap, Debug)]
@@ -113,7 +113,7 @@ fn main() -> Result<()> {
                 _ => Err(Error::Argument("comparation mode not found".into()))?,
             };
 
-            let compiler=compile(&config.exec);
+            let compiler=compile(&config.src_path);
 
             let judge_result = launch_normal_case_judge(
                 compiler.1,
@@ -128,7 +128,7 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Special(config) => {
-            let compiler=compile(&config.exec);
+            let compiler=compile(&config.src_path);
 
             let judge_result = launch_special_case_judge(
                 compiler.1,
@@ -142,14 +142,14 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Prefab(config) => {
-            let compiler=compile(&config.exec);
+            let compiler=compile(&config.src_path);
             
             // TOOD: judge should use compiledprogram instead of str
             let judge_result = ProblemConfig::from_file(&config.config)?.judge(compiler.1)?;
             println!("{:#?}", judge_result);
         }
         SubCommand::Interactive(config) => {
-            let compiler=compile(&config.exec);
+            let compiler=compile(&config.src_path);
             
             let judge_result = launch_interactive_case_judge(
                 compiler.1,
