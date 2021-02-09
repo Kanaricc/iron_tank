@@ -142,11 +142,10 @@ fn main() -> Result<()> {
             println!("{:#?}", judge_result);
         }
         SubCommand::Prefab(config) => {
-
-            let _compiler=compile(&config.exec);
+            let compiler=compile(&config.exec);
             
             // TOOD: judge should use compiledprogram instead of str
-            let judge_result = ProblemConfig::from_file(&config.config)?.judge(&config.exec)?;
+            let judge_result = ProblemConfig::from_file(&config.config)?.judge(compiler.1)?;
             println!("{:#?}", judge_result);
         }
         SubCommand::Interactive(config) => {

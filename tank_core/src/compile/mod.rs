@@ -24,7 +24,7 @@ pub enum CompilerEnvironmentStatus {
     OK { version: String, path: String },
     Missing,
 }
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CompiledProgram {
     pub path: String,
     pub args: Vec<String>,

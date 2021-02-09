@@ -106,25 +106,20 @@ impl ProblemConfig {
         let t=Path::new(&self.path).join(path).to_string_lossy().to_string();
         t
     }
-    pub fn judge(&self, exec: &str) -> Result<Vec<JudgeResult>> {
-        let exec_path = Path::new(exec);
-        if !exec_path.exists() {
-            return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "exec not found").into());
-        }
-
+    pub fn judge(&self, exec: CompiledProgram) -> Result<Vec<JudgeResult>> {
         let mut judge_results = Vec::new();
 
         for case in self.cases.iter() {
             let judge_result = match &self.judge_mode {
                 JudgeModeConfig::Normal { comparision_mode } => launch_normal_case_judge(
-                    CompiledProgram::new(exec.into()),
+                    exec.clone(),
                     self.find_relative_path(&case.inputfile_path).as_str(),
                     self.find_relative_path(&case.answerfile_path.as_ref().unwrap()).as_str(),
                     self.limit_config.clone(),
                     comparision_mode,
                 ),
                 JudgeModeConfig::Special { checker } => launch_special_case_judge(
-                    CompiledProgram::new(exec.into()),
+                    exec.clone(),
                     self.find_relative_path(&case.inputfile_path).as_str(),
                     self.find_relative_path(&checker).as_str(),
                     self.limit_config.clone(),
@@ -170,6 +165,6 @@ mod tests {
     #[test]
     fn multi_cases_judge(){
         let problem=ProblemConfig::from_file("../test_dep/problem/problem.yaml").unwrap();
-        println!("{:#?}",problem.judge("../test_dep/normal"));
+        println!("{:#?}",problem.judge(CompiledProgram::new("../test_dep/normal".into())));
     }
 }
