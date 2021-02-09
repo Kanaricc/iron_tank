@@ -1,11 +1,22 @@
+use std::collections::HashMap;
+
+use python::CompilerPython;
+use serde::__private::de;
+
 use crate::JudgeStatus;
 
-mod gpp;
-mod python;
+use self::gpp::CompilerGPP;
+
+pub mod gpp;
+pub mod python;
+
+pub trait CompilerDescriptor {
+    fn support_sufix() -> Vec<&'static str>;
+    fn check_environment() -> CompilerEnvironmentStatus;
+}
 
 pub trait Compiler {
     fn compile(&self, src: String) -> CompileResult;
-    fn check_environment() -> CompilerEnvironmentStatus;
 }
 
 #[derive(Debug)]
@@ -13,28 +24,25 @@ pub enum CompilerEnvironmentStatus {
     OK { version: String, path: String },
     Missing,
 }
-
+#[derive(Debug)]
 pub struct CompiledProgram {
     pub path: String,
     pub args: Vec<String>,
 }
 
-impl CompiledProgram{
-    pub fn new(path:String)->Self{
-        Self{
+impl CompiledProgram {
+    pub fn new(path: String) -> Self {
+        Self {
             path,
             args: Vec::new(),
         }
     }
 
-    pub fn new_with_args(path:String,args:Vec<String>)->Self{
-        Self{
-            path,
-            args,
-        }
+    pub fn new_with_args(path: String, args: Vec<String>) -> Self {
+        Self { path, args }
     }
 }
-
+#[derive(Debug)]
 pub enum CompileResult {
     OK(CompiledProgram),
     LimitExceeded,
