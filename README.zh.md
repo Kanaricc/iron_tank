@@ -1,5 +1,7 @@
 # Iron Tank (WIP)
 
+![Rust](https://github.com/Kanaricc/iron_tank/workflows/Rust/badge.svg)
+
 [English](./README.md)
 
 Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器。
@@ -45,10 +47,10 @@ Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器�
 命令格式：
 
 ```bash
-$ iron_tank normal <exec> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
+$ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
 ```
 
-* `<exec>`, 将被运行的用户程序。（目前，你需要事先编译）
+* `<src>`, 将被运行的用户代码。（目前，你需要事先编译）
 * `<input>`, 样例输入文件。
 * `<answer>`, 样例答案文件。
 * `<time-limit>`, 时间限制。（MS）
@@ -66,7 +68,7 @@ $ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 
 **(WIP)**
 
-现有 8 种可能的结果。
+现有 10 种可能的结果。
 
 ```rust
 pub enum JudgeStatus {
@@ -212,6 +214,127 @@ int main(int argc,char* argv[]){
     return 0;
 }
 ```
+
+### Interactive
+
+* 由 `interactor` 动态产生输入。
+* 用户使用标准 IO 读取和输出。
+* `interactor` 即时检查输出。
+
+一句话说，`interactor` 和用户程序被直接联系在一起，它们能够即时地对对方的动作作出反应。
+
+这个模式一般用在
+
+* 下一个输入需要依据用户的上一条输出得到。
+* 你想根据用户的输出来调整输入策略，精准打击 Ta 们的算法，为他们准备一份大礼。
+* （你总能遇见需要这种功能的场景。）
+
+命令格式：
+
+```bash
+$ iron_tank special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
+```
+
+#### Interactor
+
+`interactor`（交互器） 是一个特殊的程序，它的输入（stdin）和输出（stdout）会被「直接」和用户程序连接。
+
+`interactor` 通过标准错误流（stderr）和评测器沟通。你应该输出
+
+```
+<result>
+[msg]
+```
+
+* `<result>`: same -> Accepted, different -> WrongAnswer, presentation_different -> PresentationError.
+* `[msg]`: 一点信息，随便都行，也可以不要。
+
+一个 interactor 的例子。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main(){
+    bool ok=true;
+    for(int i=0;i<10;i++){
+        cout<<i<<endl;
+        int x;cin>>x;
+        if(x!=(1<<i))ok=false;
+    }
+
+    if(ok){
+        cerr<<"same"<<endl;
+    }else{
+        cerr<<"different"<<endl;
+    }
+
+    return 0;
+}
+```
+
+**注意，interactor 必须时刻 flush IO 缓存**。对于用户程序来说也是，你可能有必要告知用户这一点。
+
+### Prefab
+
+通过使用 YAML 文件，你可以预设一个问题项目。
+
+命令格式：
+
+```bash
+$ iron_tank prefab <config> <src>
+```
+
+* `<config>`：YAML 设置
+* `<src>`: 源码
+
+虽然 iron_tank 并不规定一个问题项目的具体组织（目前也没有明确提出这个概念），但目前**推荐**这样组织：
+
+1. 创建一个文件夹，名字是问题的标题，保证这个标题和 YAML 里的一致。例如这里，我们设为A。
+2. 在目录下创建 `problem.yaml`。
+
+`problem.yaml` 的内容形如
+
+```yaml
+name: A                     # 问题名
+limit_config:
+  time_limit: 1000          # 时间限制 (ms)
+  memory_limit: 256         # 内存限制 (MB)
+judge_mode:                 # 评测模式
+  Normal:                   # 这里用了普通模式
+    comparision_mode: Line  # 按 `Line` 比较
+cases:                      # 你可以添加很多测试点
+  - inputfile_path: 1.in    # 输入和答案文件的路径（*相对于这个配置文件*）
+    answerfile_path: 1.ans
+  - inputfile_path: 2.in
+    answerfile_path: 2.ans
+```
+
+
+然后，在这个文件夹下准备好对应的输入和输出即可。
+
+#### `judge_mode`
+
+```yaml
+judge_mode:
+  Normal:
+    comparision_mode: Full/Line/Value
+```
+
+```yaml
+judge_mode:
+  Special:
+    checker: path
+```
+
+```yaml
+judge_mode:
+  Interactive:
+    interactor: path
+    has_input: true/false. input defined in test cases will be provided to *interactor* as argument.
+```
+
+在交互模式下，你仍然需要设置测试用例的输入和输出，即使 interactor 用不到。这会被作为占位符，标志着这道题的测试组数。
 
 ## 细节
 

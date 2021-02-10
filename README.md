@@ -1,5 +1,7 @@
 # Iron Tank
 
+![Rust](https://github.com/Kanaricc/iron_tank/workflows/Rust/badge.svg)
+
 **WIP. The usage and data format may change dramatically as development progresses.**
 
 [中文](./README.zh.md)
