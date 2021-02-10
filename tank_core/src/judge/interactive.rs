@@ -217,11 +217,12 @@ impl Judge for InteractiveJudge {
         let probe_res = probe.watching();
         // notice broker just in case
         sender.send(InteractiveMessage::UserQuit).unwrap();
-        // interactor MUST quit before user, or it will be killed
-        unsafe {
-            // maybe there is a more elegant way to do it
-            kill(interactor_pid as i32, SIGKILL);
-        }
+        // ~~interactor MUST quit before user, or it will be killed~~
+        // this may cause interactor being killed before we get result from it.
+        // unsafe {
+        //     // maybe there is a more elegant way to do it
+        //     kill(interactor_pid as i32, SIGKILL);
+        // }
         // wait for broker to quit
         broker.join().unwrap();
 
