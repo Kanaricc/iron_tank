@@ -1,9 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{JudgeResult, compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare}, compile::CompiledProgram, error::Result, judge::{launch_normal_case_judge, launch_special_case_judge}};
+use crate::{
+    compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare},
+    compile::CompiledProgram,
+    error::Result,
+    judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
+    JudgeResult,
+};
 use std::fs;
 use std::path::Path;
-#[derive(Debug, Serialize, Deserialize,Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LimitConfig {
     pub time_limit: u64,
     pub memory_limit: u64,
@@ -29,6 +35,10 @@ pub enum JudgeModeConfig {
     Special {
         checker: String,
     },
+    Interactive {
+        interactor: String,
+        has_input: bool,
+    },
 }
 
 impl Into<Box<dyn ComparisionMode>> for &ComparisionModeConfig {
@@ -44,7 +54,7 @@ impl Into<Box<dyn ComparisionMode>> for &ComparisionModeConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProblemConfig {
     pub name: String,
-    #[serde(skip_serializing,skip_deserializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     path: String,
     pub limit_config: LimitConfig,
     pub judge_mode: JudgeModeConfig,
@@ -52,49 +62,48 @@ pub struct ProblemConfig {
 }
 
 impl ProblemConfig {
-
-    fn from_string(content:&str)->Result<Self>{
+    fn from_string(content: &str) -> Result<Self> {
         let v: Self = serde_yaml::from_str(&content).unwrap();
         Ok(v)
     }
     pub fn from_file(path: &str) -> Result<Self> {
         let content = fs::read_to_string(path).unwrap();
-        let mut v=Self::from_string(&content)?;
+        let mut v = Self::from_string(&content)?;
 
-        let r_path=Path::new(path).canonicalize()?;
-        let r_path=r_path.parent().unwrap();
-        let r_path=r_path.canonicalize()?.to_string_lossy().to_string();
-        v.path=r_path;
+        let r_path = Path::new(path).canonicalize()?;
+        let r_path = r_path.parent().unwrap();
+        let r_path = r_path.canonicalize()?.to_string_lossy().to_string();
+        v.path = r_path;
 
         v.check_valid()?;
         Ok(v)
     }
 
-    fn check_valid(&self)->Result<()>{
+    fn check_valid(&self) -> Result<()> {
         for case in self.cases.iter() {
             if !Path::new(&self.find_relative_path(&case.inputfile_path)).exists() {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
-                    format!("input file `{}` not found",case.inputfile_path),
+                    format!("input file `{}` not found", case.inputfile_path),
                 )
                 .into());
             }
-            if let Some(answerfile_path)=&case.answerfile_path {
-                if !Path::new(&self.find_relative_path(answerfile_path)).exists(){
+            if let Some(answerfile_path) = &case.answerfile_path {
+                if !Path::new(&self.find_relative_path(answerfile_path)).exists() {
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::NotFound,
-                        format!("answer file `{}` not found",answerfile_path),
+                        format!("answer file `{}` not found", answerfile_path),
                     )
                     .into());
                 }
             }
         }
 
-        if let JudgeModeConfig::Special { checker }=&self.judge_mode{
+        if let JudgeModeConfig::Special { checker } = &self.judge_mode {
             if !Path::new(&self.find_relative_path(checker)).exists() {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
-                    format!("checker `{}` not found",checker),
+                    format!("checker `{}` not found", checker),
                 )
                 .into());
             }
@@ -102,8 +111,11 @@ impl ProblemConfig {
 
         Ok(())
     }
-    pub fn find_relative_path(&self,path:&str)->String{
-        let t=Path::new(&self.path).join(path).to_string_lossy().to_string();
+    pub fn find_relative_path(&self, path: &str) -> String {
+        let t = Path::new(&self.path)
+            .join(path)
+            .to_string_lossy()
+            .to_string();
         t
     }
     pub fn judge(&self, exec: CompiledProgram) -> Result<Vec<JudgeResult>> {
@@ -114,7 +126,8 @@ impl ProblemConfig {
                 JudgeModeConfig::Normal { comparision_mode } => launch_normal_case_judge(
                     exec.clone(),
                     self.find_relative_path(&case.inputfile_path).as_str(),
-                    self.find_relative_path(&case.answerfile_path.as_ref().unwrap()).as_str(),
+                    self.find_relative_path(&case.answerfile_path.as_ref().unwrap())
+                        .as_str(),
                     self.limit_config.clone(),
                     comparision_mode,
                 ),
@@ -124,6 +137,22 @@ impl ProblemConfig {
                     self.find_relative_path(&checker).as_str(),
                     self.limit_config.clone(),
                 ),
+                JudgeModeConfig::Interactive {
+                    interactor,
+                    has_input,
+                } => {
+                    let input = if has_input.clone() {
+                        Some(self.find_relative_path(&case.inputfile_path))
+                    } else {
+                        None
+                    };
+                    launch_interactive_case_judge(
+                        exec.clone(),
+                        input,
+                        self.find_relative_path(&interactor).as_str(),
+                        self.limit_config.clone(),
+                    )
+                }
             }?;
 
             judge_results.push(judge_result);
@@ -158,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize(){
-        let _problem=ProblemConfig::from_file("../test_dep/normal/problem.yaml").unwrap();
+    fn deserialize() {
+        let _problem = ProblemConfig::from_file("../test_dep/normal/problem.yaml").unwrap();
     }
 }
