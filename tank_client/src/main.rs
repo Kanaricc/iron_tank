@@ -4,7 +4,7 @@ use lapin::{
     Connection, ConnectionProperties, Result,
 };
 use tokio_amqp::*;
-use tokio_stream::StreamExt;
+use futures_util::stream::StreamExt;
 
 #[tokio::main]
 async fn main() -> Result<()> {
