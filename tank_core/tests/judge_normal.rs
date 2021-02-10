@@ -4,7 +4,7 @@ use compile::Compiler;
 use tank_core::{
     compile::{self, CompileResult},
     config::ProblemConfig,
-    error::{Error, Result},
+    error::{ Result},
     JudgeStatus,
 };
 

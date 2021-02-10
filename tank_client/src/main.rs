@@ -1,29 +1,29 @@
+use lapin::{
+    options::{BasicAckOptions, BasicConsumeOptions},
+    types::FieldTable,
+    Connection, ConnectionProperties, Result,
+};
+use tokio_amqp::*;
+use tokio_stream::StreamExt;
 
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+#[tokio::main]
+async fn main() -> Result<()> {
+    let addr = std::env::var("AMQP_ADDR").unwrap_or_else(|_| "amqp://127.0.0.1:5672/%2f".into());
+    let conn = Connection::connect(&addr, ConnectionProperties::default().with_tokio()).await?; // Note the `with_tokio()` here
+    let channel = conn.create_channel().await?;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
+    let mut consumer = channel
+        .basic_consume(
+            "judge_tasks",
+            "my_consumer",
+            BasicConsumeOptions::default(),
+            FieldTable::default(),
+        )
+        .await?;
 
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
-}
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .service(hello)
-            .service(echo)
-            .route("/hey", web::get().to(manual_hello))
-    })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
+    while let Some(delivery) = consumer.next().await {
+        let delivery = delivery.expect("error in consumer").1;
+        delivery.ack(BasicAckOptions::default()).await.expect("ack");
+    }
+    Ok(())
 }

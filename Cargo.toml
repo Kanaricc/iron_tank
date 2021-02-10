@@ -12,5 +12,6 @@ members = [
     "tank_cell",
     "tank_cli",
     "tank_client",
+    "tank_server",
     "tank_core",
 ]
