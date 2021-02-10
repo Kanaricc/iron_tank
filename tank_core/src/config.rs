@@ -159,12 +159,6 @@ mod tests {
 
     #[test]
     fn deserialize(){
-        let _problem=ProblemConfig::from_file("../test_dep/problem/problem.yaml").unwrap();
-    }
-
-    #[test]
-    fn multi_cases_judge(){
-        let problem=ProblemConfig::from_file("../test_dep/problem/problem.yaml").unwrap();
-        println!("{:#?}",problem.judge(CompiledProgram::new("../test_dep/normal".into())));
+        let _problem=ProblemConfig::from_file("../test_dep/normal/problem.yaml").unwrap();
     }
 }
