@@ -1,22 +1,22 @@
 use std::process::Command;
 
-use crate::compare;
-
-
-pub struct Cell{
-    command:Command,
+#[allow(dead_code)]
+pub struct Cell {
+    command: Command,
 }
 
 impl Cell {
-    pub fn new_executable(path:String)->Self{
-        Self{
-            command:Command::new(path)
+    #[allow(dead_code)]
+    pub fn new_executable(path: String) -> Self {
+        Self {
+            command: Command::new(path),
         }
     }
 
-    pub fn new_interpretive(interpretor:String,path:String)->Self{
-        Self{
-            command:Command::new(interpretor)
+    #[allow(dead_code)]
+    pub fn new_interpretive(interpretor: String, _path: String) -> Self {
+        Self {
+            command: Command::new(interpretor),
         }
     }
 }

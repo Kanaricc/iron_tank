@@ -12,8 +12,6 @@ use super::{get_path_of_tankcell, Judge};
 
 use std::io::{Write,Read};
 
-use libc::*;
-
 pub struct InteractiveJudge {
     program: CompiledProgram,
     input: Option<String>,
@@ -61,7 +59,7 @@ impl Judge for InteractiveJudge {
             .unwrap()
         };
 
-        let interactor_pid = interactor.id();
+        let _interactor_pid = interactor.id();
         let mut iin = interactor.stdin.ok_or(std::io::Error::new(
             std::io::ErrorKind::BrokenPipe,
             "failed to open stdin for interactor",
