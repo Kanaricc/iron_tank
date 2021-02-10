@@ -46,10 +46,10 @@ This is the common and useful mode for most situation.
 Command pattern:
 
 ```bash
-$ iron_tank normal <exec> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
+$ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
 ```
 
-* `<exec>`, the path of program to be run.
+* `<src>`, the path of source.
 * `<input>`, the input file for program.
 * `<answer>`, the answer file.
 * `<time-limit>`, time limit(MS) for program.
@@ -152,10 +152,10 @@ This mode is used when
 Command pattern:
 
 ```bash
-$ iron_tank special <checker> <exec> -i <input> -t <time-limit> -m <memory-limit>
+$ iron_tank special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
-* `<exec>`, the path of program to be run.
+* `<src>`, the path of source.
 * `<input>`, the input file for program.
 * `<checker>`, the path of checker
 * `<time-limit>`, time limit(MS) for program.
@@ -227,7 +227,7 @@ This mode is used when
 Command pattern:
 
 ```bash
-$ iron_tank special <interactor> <exec> -i <input> -t <time-limit> -m <memory-limit>
+$ iron_tank special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
 #### Interactor
@@ -308,6 +308,29 @@ cases:                      # you can add many cases for one problem
 ```
 
 Then, prepare and put your data in correct place according to this config file. I suggest you put them in the same folder.
+
+#### `judge_mode`
+
+```yaml
+judge_mode:
+  Normal:
+    comparision_mode: Full/Line/Value
+```
+
+```yaml
+judge_mode:
+  Special:
+    checker: path
+```
+
+```yaml
+judge_mode:
+  Interactive:
+    interactor: path
+    has_input: true/false. input defined in test cases will be provided to *interactor* as argument.
+```
+
+In interactive mode, you also need to set test cases' inputs and outputs, even if the interactor does not care about them. If you set `has_input` as `false`, however, both inputs and outputs of the test cases are just placeholders which imply the number of cases.
 
 ## Details
 
