@@ -30,7 +30,7 @@ impl CompilerDescriptor for CompilerPython{
     }
 
     fn check_environment() -> super::CompilerEnvironmentStatus {
-        let path = which::which("python");
+        let path = which::which("python3");
         match path {
             Ok(path) => {
                 let output = Command::new(&path)
