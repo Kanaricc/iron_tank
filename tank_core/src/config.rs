@@ -10,13 +10,18 @@ use crate::{
 use std::fs;
 use std::path::Path;
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename = "limitConfig")]
 pub struct LimitConfig {
+    #[serde(rename = "timeLimit")]
     pub time_limit: u64,
+    #[serde(rename = "memoryLimit")]
     pub memory_limit: u64,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CaseConfig {
+    #[serde(rename = "inputFile")]
     pub inputfile_path: String,
+    #[serde(rename = "answerFile")]
     pub answerfile_path: Option<String>,
 }
 
@@ -30,6 +35,7 @@ pub enum ComparisionModeConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum JudgeModeConfig {
     Normal {
+        #[serde(rename = "comparisionMode")]
         comparision_mode: ComparisionModeConfig,
     },
     Special {
@@ -56,7 +62,9 @@ pub struct ProblemConfig {
     pub name: String,
     #[serde(skip_serializing, skip_deserializing)]
     path: String,
+    #[serde(rename = "limitConfig")]
     pub limit_config: LimitConfig,
+    #[serde(rename = "judgeMode")]
     pub judge_mode: JudgeModeConfig,
     pub cases: Vec<CaseConfig>,
 }
