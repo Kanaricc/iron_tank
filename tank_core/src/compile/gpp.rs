@@ -81,6 +81,7 @@ impl Compiler for CompilerGPP{
             .arg("-o")
             .arg(exec_path.to_str().unwrap())
             .arg(String::from(self.standard.clone()))
+            .arg("-O2")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
