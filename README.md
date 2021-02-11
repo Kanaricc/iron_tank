@@ -32,6 +32,8 @@ Does not support Windows.
 
 ## Usage
 
+> You can use `tank_cli help`.
+
 ### Server
 
 By starting Iron Tank in server mode, you get a judge backend. (WIP)
@@ -48,7 +50,7 @@ This is the common and useful mode for most situation.
 Command pattern:
 
 ```bash
-$ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
+$ tank_cli normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
 ```
 
 * `<src>`, the path of source.
@@ -61,7 +63,7 @@ $ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit
 Just for example. The command below will start a "cell", in which program can only use *about* 256 MB memory at most, run no longer than *about* 1 second, only read/write to standard io without permissions such as opening file, conencting network and forking new process. The output by `./user_code` is compared with content of `1.ans` line by line.
 
 ```
-$ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
+$ tank_cli normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 ```
 
 #### Judge Result
@@ -154,7 +156,7 @@ This mode is used when
 Command pattern:
 
 ```bash
-$ iron_tank special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
+$ tank_cli special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
 * `<src>`, the path of source.
@@ -229,7 +231,7 @@ This mode is used when
 Command pattern:
 
 ```bash
-$ iron_tank special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
+$ tank_cli special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
 #### Interactor
@@ -281,11 +283,11 @@ By using a YAML configuration file, you can edit a problem beforehand and quickl
 Command pattern:
 
 ```bash
-$ iron_tank prefab <config> <exec>
+$ tank_cli prefab <config> <src>
 ```
 
 * `<config>`: config file.
-* `<exec>`: the path of program to be run.
+* `<src>`: the path of source.
 
 To make a prefab,
 
@@ -333,6 +335,12 @@ judge_mode:
 ```
 
 In interactive mode, you also need to set test cases' inputs and outputs, even if the interactor does not care about them. If you set `has_input` as `false`, however, both inputs and outputs of the test cases are just placeholders which imply the number of cases.
+
+## Language Support
+
+| Compiler | command                       |
+| -------- | ----------------------------- |
+| g++      | `g++ <input> -o <output> -O2` |
 
 ## Details
 
