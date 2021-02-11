@@ -1,12 +1,12 @@
 name: A
-limit_config:
-  time_limit: 1000
-  memory_limit: 256
-judge_mode:
+limitConfig:
+  timeLimit: 1000
+  memoryLimit: 256
+judgeMode:
   Normal:
-    comparision_mode: Line
+    comparisionMode: Line
 cases:
-  - inputfile_path: 1.in
-    answerfile_path: 1.ans
-  - inputfile_path: 2.in
-    answerfile_path: 2.ans
+  - inputFile: 1.in
+    answerFile: 1.ans
+  - inputFile: 2.in
+    answerFile: 2.ans
