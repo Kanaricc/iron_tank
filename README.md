@@ -364,9 +364,17 @@ There is a possible existing problem that a program has not touched the limit un
 
 **Be careful for data format.** Error caused by *invalid* data is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result leaving everything seems to be no problems.
 
-* **Use ASCII or UTF-8 for all data, including file and checker's output.**
-* **Input should ends with a new empty line, unless you know what you are doing.** For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python. If the input format is important for your problem, you may ignore this and mention it to users.
-* **Fully test your data.** Though it is none of bussiness of Judge.
+#### Encode
+
+Use ASCII or UTF-8 for all data, including file and checker's output.
+
+#### End of Line & End of File
+
+Watch out the new empty line in input file. For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered or it comes across `EOF`. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python.
+
+If the input format is important for your problem, you may ignore this and mention it to users.
+
+#### Ttest your data
 
 ### A program luckily uses both too much time and memory...
 

@@ -72,8 +72,9 @@ impl Judge for NormalJudge {
             "failed to open stdin",
         ))?;
         cin.write_all(self.input.into_bytes().as_slice())?;
-        cin.write(&[0])?;
         cin.flush()?;
+        drop(cin);
+        drop(command.stdin);
 
         let cout = command.stdout.as_mut().ok_or(std::io::Error::new(
             std::io::ErrorKind::BrokenPipe,
