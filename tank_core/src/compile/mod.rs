@@ -1,11 +1,4 @@
-use std::collections::HashMap;
-
-use python::CompilerPython;
-use serde::__private::de;
-
 use crate::JudgeStatus;
-
-use self::gpp::CompilerGPP;
 
 pub mod gpp;
 pub mod python;
@@ -24,7 +17,7 @@ pub enum CompilerEnvironmentStatus {
     OK { version: String, path: String },
     Missing,
 }
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct CompiledProgram {
     pub path: String,
     pub args: Vec<String>,

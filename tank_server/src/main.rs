@@ -1,10 +1,12 @@
-use std::{thread, time::Duration};
+use std::time::Duration;
 
-use lapin::{BasicProperties, Connection, ConnectionProperties, Result, options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions}, types::FieldTable};
-use log::info;
-use tokio::{task::spawn_blocking, time::sleep};
-use tokio_amqp::*;
 use futures_util::stream::StreamExt;
+use lapin::{
+    options::{BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, QueueDeclareOptions},
+    types::FieldTable,
+    BasicProperties, Connection, ConnectionProperties, Result,
+};
+use tokio_amqp::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,7 +33,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    let t=tokio::spawn(async move {
+    let t = tokio::spawn(async move {
         while let Some(delivery) = consumer.next().await {
             tokio::time::sleep(Duration::from_millis(300)).await;
             let delivery = delivery.expect("error in consumer");
@@ -49,8 +51,10 @@ async fn main() -> Result<()> {
                     "233".to_string().into_bytes(),
                     BasicProperties::default(),
                 )
-                .await.unwrap()
-                .await.unwrap();
+                .await
+                .unwrap()
+                .await
+                .unwrap();
         }
     });
 
