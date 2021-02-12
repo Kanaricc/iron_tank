@@ -12,7 +12,8 @@ int main(){
 
     vector<int> vec;
     for(int i=0;i<1e9;i++){
-        vec.push_back(i*i);
+        vec.push_back(i);
+        if(vec.size()>10)vec.pop_back();
     }
 
     int a;cin>>a;

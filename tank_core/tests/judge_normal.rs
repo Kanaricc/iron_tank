@@ -59,6 +59,8 @@ fn normal_time_limit_exceeded() -> Result<()> {
 
     let result = &judge.judge(program)?[0];
 
+    println!("{:#?}",result);
+
     assert!(result.time.unwrap() > 1000);
     debug_assert!(matches!(result.status, JudgeStatus::TimeLimitExceeded));
     Ok(())
