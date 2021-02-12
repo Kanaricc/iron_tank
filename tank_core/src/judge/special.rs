@@ -66,6 +66,7 @@ impl Judge for SpecialJudge {
             "failed to open stdin",
         ))?;
         cin.write_all(self.input.as_bytes())?;
+        cin.write(&[0])?;
         cin.flush()?;
 
         let cout = command.stdout.as_mut().ok_or(std::io::Error::new(

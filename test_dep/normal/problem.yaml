@@ -10,3 +10,5 @@ cases:
     answerFile: 1.ans
   - inputFile: 2.in
     answerFile: 2.ans
+  - inputFile: 3.in
+    answerFile: 3.ans
