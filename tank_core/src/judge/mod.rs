@@ -8,7 +8,7 @@ use std::{
 };
 
 use self::{interactive::InteractiveJudge, normal::NormalJudge, special::SpecialJudge};
-use crate::{JudgeResult, compare::ComparisionMode, compile::CompiledProgram, config::{ComparisionModeConfig, LimitConfig}, error::Result};
+use crate::{JudgeResult, compare::ComparisionMode, compile::CompiledProgram, problem::{ComparisionModeConfig, LimitConfig}, error::Result};
 
 pub trait Judge {
     fn judge(self) -> Result<JudgeResult>;

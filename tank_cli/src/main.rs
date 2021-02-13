@@ -5,7 +5,7 @@ use clap::Clap;
 use compile::CompilerDescriptor;
 use tank_core::{compile::{self, CompileResult, CompiledProgram, Compiler}, error::{Error, Result}};
 use tank_core::{
-    config::{ComparisionModeConfig, LimitConfig, ProblemConfig},
+    problem::{ComparisionModeConfig, LimitConfig, ProblemConfig},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
 };
 #[derive(Clap)]

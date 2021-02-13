@@ -6,7 +6,7 @@ use std::{
 };
 
 use super::{get_path_of_tankcell, Judge};
-use crate::{JudgeResult, JudgeStatus, compile::CompiledProgram, config::LimitConfig, error::Error, error::Result, probe::ProcessProbe};
+use crate::{JudgeResult, JudgeStatus, compile::CompiledProgram, problem::LimitConfig, error::Error, error::Result, probe::ProcessProbe};
 
 pub struct SpecialJudge {
     program: CompiledProgram,
