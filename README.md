@@ -297,38 +297,38 @@ To make a prefab,
 Content of a `problem.yaml` likes
 
 ```yaml
-name: A                     # the title of problem
-limit_config:
-  time_limit: 1000          # time limit (ms)
-  memory_limit: 256         # and memory limit (MB)
-judge_mode:                 # judge mode
-  Normal:                   # here we use normal mode
-    comparision_mode: Line  # compare output using `Line` mode
-cases:                      # you can add many cases for one problem
-  - inputfile_path: 1.in    # the path is relative to this config file
-    answerfile_path: 1.ans
-  - inputfile_path: 2.in
-    answerfile_path: 2.ans
+name: A                       # the title of problem
+limitConfig:
+  time:imit: 1000             # time limit (ms)
+  memory:imit: 256            # and memory limit (MB)
+judgeMode:                    # judge mode
+  Normal:                     # here we use normal mode
+    comparisionMode: Line     # compare output using `Line` mode
+cases:                        # you can add many cases for one problem
+  - inputfilePath: 1.in       # the path is relative to this config file
+    answerfilePath: 1.ans
+  - inputfilePath: 2.in
+    answerfilePath: 2.ans
 ```
 
 Then, prepare and put your data in correct place according to this config file. I suggest you put them in the same folder.
 
-#### `judge_mode`
+#### `judgeMode`
 
 ```yaml
-judge_mode:
+judgeMode:
   Normal:
-    comparision_mode: Full/Line/Value
+    comparisionMode: Full/Line/Value
 ```
 
 ```yaml
-judge_mode:
+judgeMode:
   Special:
     checker: path
 ```
 
 ```yaml
-judge_mode:
+judgeMode:
   Interactive:
     interactor: path
     has_input: true/false. input defined in test cases will be provided to *interactor* as argument.
