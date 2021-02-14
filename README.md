@@ -304,6 +304,7 @@ limitConfig:
 judgeMode:                    # judge mode
   Normal:                     # here we use normal mode
     comparisionMode: Line     # compare output using `Line` mode
+lint: ~                       # 
 cases:                        # you can add many cases for one problem
   - inputfilePath: 1.in       # the path is relative to this config file
     answerfilePath: 1.ans
