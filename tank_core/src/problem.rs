@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use crate::{
     compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare},
     compile::CompiledProgram,
-    error::Result,
+    error::{Error, Result},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
+    lint::DataLinter,
     JudgeResult,
 };
 use std::fs;
@@ -57,8 +58,8 @@ impl Into<Box<dyn ComparisionMode>> for &ComparisionModeConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProblemConfig {
+#[derive(Serialize, Deserialize)]
+pub struct ProblemConfig<'a> {
     pub name: String,
     #[serde(skip_serializing, skip_deserializing)]
     path: String,
@@ -66,12 +67,16 @@ pub struct ProblemConfig {
     pub limit_config: LimitConfig,
     #[serde(rename = "judgeMode")]
     pub judge_mode: JudgeModeConfig,
+    pub lint: Option<DataLinter<'a>>,
     pub cases: Vec<CaseConfig>,
 }
 
-impl ProblemConfig {
+impl<'a> ProblemConfig<'a> {
     fn from_string(content: &str) -> Result<Self> {
-        let v: Self = serde_yaml::from_str(&content).unwrap();
+        let mut v: Self = serde_yaml::from_str(&content).unwrap();
+        if let Some(lint)=&mut v.lint{
+            lint.init()?;
+        }
         Ok(v)
     }
     pub fn from_file(path: &str) -> Result<Self> {
@@ -103,6 +108,19 @@ impl ProblemConfig {
                         format!("answer file `{}` not found", answerfile_path),
                     )
                     .into());
+                }
+            }
+
+            if let Some(lint) = &self.lint {
+                let res = lint.check(&fs::read(self.find_relative_path(&case.inputfile_path))?);
+                if res.len() > 0 {
+                    return Err(Error::Data(res.join("\n")));
+                }
+                if let Some(answerfile_path) = &case.answerfile_path {
+                    let res = lint.check(&fs::read(self.find_relative_path(answerfile_path))?);
+                    if res.len() > 0 {
+                        return Err(Error::Data(res.join("\n")));
+                    }
                 }
             }
         }
@@ -189,13 +207,16 @@ mod tests {
                 answerfile_path: "out".to_string().into(),
             }],
             path: "../test_dep/problem".into(),
+            lint: None,
         };
         let s = serde_yaml::to_string(&problem).unwrap();
         println!("{}", s);
     }
 
     #[test]
-    fn deserialize() {
-        let _problem = ProblemConfig::from_file("../test_dep/normal/problem.yaml").unwrap();
+    fn deserialize() -> Result<()> {
+        let _problem = ProblemConfig::from_file("../test_dep/normal/problem.yaml")?;
+
+        Ok(())
     }
 }

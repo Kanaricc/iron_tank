@@ -2,7 +2,7 @@ pub mod compare;
 pub mod error;
 pub mod probe;
 pub mod judge;
-pub mod config;
+pub mod problem;
 pub mod compile;
 pub mod lint;
 mod container;

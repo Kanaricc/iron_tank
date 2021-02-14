@@ -7,6 +7,7 @@ pub enum Error{
     IO(std::io::Error),
     Argument(String),
     Checker(String),
+    Data(String),
     Judge{
         judge_name:String,
         msg:String,

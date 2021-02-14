@@ -3,7 +3,7 @@ use std::fs;
 use compile::Compiler;
 use tank_core::{
     compile::{self, CompileResult},
-    config::ProblemConfig,
+    problem::ProblemConfig,
     error::{ Result},
     JudgeStatus,
 };

@@ -7,7 +7,7 @@ use std::{
 
 use super::{get_path_of_tankcell, Judge};
 use crate::{
-    compare::ComparisionMode, compile::CompiledProgram, config::LimitConfig, error::Result,
+    compare::ComparisionMode, compile::CompiledProgram, problem::LimitConfig, error::Result,
     probe::ProcessProbe, JudgeResult, JudgeStatus,
 };
 
