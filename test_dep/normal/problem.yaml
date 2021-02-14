@@ -5,6 +5,13 @@ limitConfig:
 judgeMode:
   Normal:
     comparisionMode: Line
+lint:
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
 cases:
   - inputFile: 1.in
     answerFile: 1.ans

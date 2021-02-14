@@ -2,6 +2,13 @@ use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs};
 
+pub const ALL_KEYS: [&str; 5] = [
+    "unexpected-bytes",
+    "consecutive-empty-lines",
+    "start-with-empty-line",
+    "extra-spaces-after-lines",
+    "consecutive-spaces",
+];
 #[derive(Serialize, Deserialize)]
 pub struct DataLinter<'a> {
     #[serde(skip_serializing, skip_deserializing)]
@@ -34,6 +41,15 @@ impl<'a> DataLinter<'a> {
         Ok(v)
     }
 
+    /// this function is used to initialize itself when loading from config
+    /// TODO: this should be avoid.
+    pub(crate) fn init(&mut self)->Result<()>{
+        self.load_default_linter();
+        self.check_config()?;
+
+        Ok(())
+    }
+
     pub fn check_config(&self) -> Result<()> {
         assert!(self._linters.len() > 0);
         for key in self.linters.iter() {
@@ -46,7 +62,7 @@ impl<'a> DataLinter<'a> {
 
     pub fn load_default_linter(&mut self) {
         // unexpected bytes.
-        // bytes below 32 are all special chars defined in ASCII. Normally, data will not need them, except 10(NL) and 14(CR).
+        // bytes below 32 are all special chars defined in ASCII. Normally, data does not need them, except 10(LF) and 14(CR).
         // TODO: support other encode.
         self._linters.insert(
             "unexpected-bytes",
@@ -110,7 +126,7 @@ impl<'a> DataLinter<'a> {
             Box::new(|bytes: &Vec<u8>| {
                 for i in 1..bytes.len() {
                     if bytes[i - 1] == 32u8 && bytes[i] == 32u8 {
-                        return vec![format!("consecutive spaces")];
+                        return vec![format!("consecutive spaces.")];
                     }
                 }
 
@@ -133,13 +149,14 @@ impl<'a> DataLinter<'a> {
 mod tests {
     use super::*;
 
-    const ALL_KEYS: [&str; 5] = [
-        "unexpected-bytes",
-        "consecutive-empty-lines",
-        "start-with-empty-line",
-        "extra-spaces-after-lines",
-        "consecutive-spaces",
-    ];
+    #[test]
+    fn serialize() -> Result<()> {
+        let linter = DataLinter::new(ALL_KEYS.to_vec())?;
+        let linter = serde_yaml::to_string(&linter).unwrap();
+        println!("{}", linter);
+
+        Ok(())
+    }
     #[test]
     fn safe_data() -> Result<()> {
         let sample = "1 3\n2\n".to_string().into_bytes();
@@ -158,7 +175,7 @@ mod tests {
         let mut linter = DataLinter::new(ALL_KEYS.to_vec())?;
         linter.load_default_linter();
 
-        assert_eq!(vec!["consecutive spaces"], linter.check(&sample));
+        assert_eq!(vec!["consecutive spaces."], linter.check(&sample));
 
         Ok(())
     }
