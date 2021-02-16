@@ -8,6 +8,7 @@ pub enum Error{
     Argument(String),
     Checker(String),
     Data(String),
+    UnexpectedBlockType,
     Judge{
         judge_name:String,
         msg:String,

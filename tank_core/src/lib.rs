@@ -6,6 +6,7 @@ pub mod problem;
 pub mod compile;
 pub mod lint;
 mod container;
+pub mod byte_scanner;
 
 #[derive(Debug)]
 pub struct JudgeResult {
