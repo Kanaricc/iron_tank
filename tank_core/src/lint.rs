@@ -1,6 +1,11 @@
-use crate::error::{Error, Result};
+use crate::{
+    error::{Error, Result},
+};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs};
+use std::{
+    collections::HashMap,
+    fs,
+};
 
 pub const ALL_KEYS: [&str; 5] = [
     "unexpected-bytes",
@@ -43,7 +48,7 @@ impl<'a> DataLinter<'a> {
 
     /// this function is used to initialize itself when loading from config
     /// TODO: this should be avoid.
-    pub(crate) fn init(&mut self)->Result<()>{
+    pub(crate) fn init(&mut self) -> Result<()> {
         self.load_default_linter();
         self.check_config()?;
 
