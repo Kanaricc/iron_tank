@@ -264,12 +264,12 @@ mod tests {
                 "#,
             )
             .unwrap();
-        println!(
-            "{:?}",
+        assert_eq!(
             scope
                 .get_value::<ByteScannerScriptBinder>("input")
                 .unwrap()
-                .get_err()
+                .get_err(),
+            Vec::<String>::new()
         );
     }
 }
