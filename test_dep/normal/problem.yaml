@@ -5,13 +5,30 @@ limitConfig:
 judgeMode:
   Normal:
     comparisionMode: Line
-lint:
+inputLint:
   linters:
     - unexpected-bytes
     - consecutive-empty-lines
     - start-with-empty-line
     - extra-spaces-after-lines
     - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
+answerLint:
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
 cases:
   - inputFile: 1.in
     answerFile: 1.ans
