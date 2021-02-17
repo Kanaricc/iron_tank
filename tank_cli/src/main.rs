@@ -32,6 +32,8 @@ enum SubCommand {
     Interactive(InteractiveJudgeConfig),
     #[clap(version = "0.2.0", about = "Judge using config.yaml")]
     Prefab(PrefabJudgeConfig),
+    #[clap(version = "0.1.0", about = "Lint problem using config.yaml")]
+    Lint(LintConfig),
     #[clap(version = "0.1.0", about = "Debug mode")]
     Debug,
 }
@@ -96,6 +98,12 @@ struct PrefabJudgeConfig {
     config: String,
     #[clap(about = "path of code")]
     src_path: String,
+}
+
+#[derive(Clap, Debug)]
+struct LintConfig {
+    #[clap(about = "problem config")]
+    config: String,
 }
 
 #[derive(Clap, Debug)]
@@ -165,6 +173,11 @@ fn main() -> Result<()> {
         SubCommand::Debug => {}
         SubCommand::Compile(config) => {
             let _compiler=compile(&config.file);
+        }
+        
+        SubCommand::Lint(config) => {
+            let judge_result = ProblemConfig::from_file(&config.config)?;
+            println!("{:#?}", judge_result.lint_data()?);
         }
     }
 
