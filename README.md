@@ -304,7 +304,30 @@ limitConfig:
 judgeMode:                    # judge mode
   Normal:                     # here we use normal mode
     comparisionMode: Line     # compare output using `Line` mode
-lint: ~                       # 
+inputLint:                    # add lint and check your data to avoid mistakes
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
+answerLint:
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
 cases:                        # you can add many cases for one problem
   - inputfilePath: 1.in       # the path is relative to this config file
     answerfilePath: 1.ans
@@ -337,6 +360,18 @@ judgeMode:
 
 In interactive mode, you also need to set test cases' inputs and outputs, even if the interactor does not care about them. If you set `has_input` as `false`, however, both inputs and outputs of the test cases are just placeholders which imply the number of cases.
 
+## Lint
+
+By using a YAML configuration file, you get the benefit that the data can be checked by `tank`.
+
+Command pattern:
+
+```bash
+$ tank_cli lint <config>
+```
+
+* `<config>`: config file.
+
 ## Language Support
 
 | Compiler | command                       |
@@ -344,39 +379,3 @@ In interactive mode, you also need to set test cases' inputs and outputs, even i
 | g++      | `g++ <input> -o <output> -O2` |
 
 ## Details
-
-### Time and Memory Limits
-
-In fact, the real limits of time and memory are *two times* higher than values you set. That means a program can still run and exit normally even it has allocated more memory and used more cpu time than limit you set.
-
-Iron Tank will give `TLE` when the time usage is longer than limit.
-
-Will give `MLE` when
-
-* Program is killed by cell, and the peak memory usage overflow.
-* Program is killed by cell, and it exits with error message caused by memory allocation.
-* Program exits normally, but the peak memory usage overflow.
-
-There is a possible existing problem that a program has not touched the limit unless the next allocation in future were done. Once such a allocation is put up with, program will be killed immediately. Since vary languages and compilers act differently, this situation has not been all covered now. That means a program may be killed, leaving result to be *Runtime Error* while it is actually *Memory Limit Exceeded*.
-
-> I have encountered this problem on some Online Judge platforms (won't specify them here). Hope it can be solved by the development of this repo.
-
-### Data Format
-
-**Be careful for data format.** Error caused by *invalid* data is hard to be observed. Simplely making mistakes in config just let Judge exits with error, while an invalid input leads to wrong judge result leaving everything seems to be no problems.
-
-#### Encode
-
-Use ASCII or UTF-8 for all data, including file and checker's output.
-
-#### End of Line & End of File
-
-Watch out the new empty line in input file. For C/C++, `scanf()` and `cin` only take input at the moment when a `enter` is entered or it comes across `EOF`. Missing such thing will let the program wait for it till it is killed because of TLE. But some languages does not care about that such as Python.
-
-If the input format is important for your problem, you may ignore this and mention it to users.
-
-#### Ttest your data
-
-### A program luckily uses both too much time and memory...
-
-`TLE` is concerned first.
