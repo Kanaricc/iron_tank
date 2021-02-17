@@ -1,11 +1,10 @@
 use crate::{
+    byte_scanner::{ByteScanner, ByteScannerScriptBinder, ScriptInject},
     error::{Error, Result},
 };
+use rhai::{Engine, Scope};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    fs,
-};
+use std::{collections::HashMap, fs};
 
 pub const ALL_KEYS: [&str; 5] = [
     "unexpected-bytes",
@@ -19,6 +18,8 @@ pub struct DataLinter<'a> {
     #[serde(skip_serializing, skip_deserializing)]
     _linters: HashMap<&'a str, Box<dyn Fn(&Vec<u8>) -> Vec<String>>>,
     linters: Vec<String>,
+    #[serde(rename = "customLints")]
+    custom_lints: Option<Vec<String>>,
 }
 
 impl<'a> DataLinter<'a> {
@@ -26,6 +27,7 @@ impl<'a> DataLinter<'a> {
         let mut v = Self {
             _linters: HashMap::new(),
             linters: linters.into_iter().map(|f| f.to_string()).collect(),
+            custom_lints: None,
         };
 
         v.load_default_linter();
@@ -63,6 +65,13 @@ impl<'a> DataLinter<'a> {
             }
         }
         Ok(())
+    }
+
+    pub fn push_custom_lint(&mut self, script: String) {
+        if let None = self.custom_lints {
+            self.custom_lints = Some(Vec::new());
+        }
+        self.custom_lints.as_mut().unwrap().push(script);
     }
 
     pub fn load_default_linter(&mut self) {
@@ -146,6 +155,26 @@ impl<'a> DataLinter<'a> {
             res.extend(self._linters.get(key.as_str()).unwrap()(bytes));
         }
 
+        if let Some(custom_lints) = &self.custom_lints {
+            for script in custom_lints {
+                let scanner = ByteScanner::from_bytes(bytes.clone());
+                let binder = ByteScannerScriptBinder::new(scanner);
+                let mut engine = Engine::new();
+                let mut scope = Scope::new();
+                binder.inject_engine(&mut engine);
+                binder.inject_scope(&mut scope, "data");
+
+                // TODO: compile scripts and check error when initializing.
+                engine.eval_with_scope::<i64>(&mut scope, script).unwrap();
+
+                let binder: ByteScannerScriptBinder = scope.get_value("data").unwrap();
+                let script_res = binder.get_err();
+                if !script_res.is_empty() {
+                    res.extend(script_res.into_iter());
+                }
+            }
+        }
+
         res
     }
 }
@@ -216,5 +245,50 @@ mod tests {
 
         assert_eq!(vec!["unexpected byte: 13."], linter.check(&sample));
         Ok(())
+    }
+
+    #[test]
+    fn custom_lint_ok() -> Result<()> {
+        let sample = "1 3\n2".to_string().into_bytes();
+
+        let mut linter = DataLinter::new(ALL_KEYS.to_vec())?;
+        linter.load_default_linter();
+        linter.push_custom_lint(
+            r#"
+            data.rint();
+            data.espace();
+            data.rint();
+            data.eeoln();
+            data.rint();
+            data.eeof();
+            0
+                    "#
+            .to_string(),
+        );
+        assert_eq!(linter.check(&sample).len(), 0);
+
+        Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn custom_lint_err() {
+        let sample = "1 3\n2\n".to_string().into_bytes();
+
+        let mut linter = DataLinter::new(ALL_KEYS.to_vec()).unwrap();
+        linter.load_default_linter();
+        linter.push_custom_lint(
+            r#"
+            data.rint();
+            data.espace();
+            data.rint();
+            data.eeoln();
+            data.rint();
+            data.eeof();
+            0
+                    "#
+            .to_string(),
+        );
+        assert_eq!(linter.check(&sample).len(), 0);
     }
 }

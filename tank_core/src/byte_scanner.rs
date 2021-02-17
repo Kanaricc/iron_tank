@@ -1,8 +1,13 @@
 use std::str::FromStr;
 
-use rhai::{Engine, RegisterFn};
+use rhai::{Engine, RegisterFn, Scope};
 
 use crate::error::{Error, Result};
+
+pub trait ScriptInject {
+    fn inject_engine(&self, engine: &mut Engine);
+    fn inject_scope(self, scope: &mut Scope, key: &'static str);
+}
 
 #[derive(Clone, Debug)]
 pub struct ByteScanner {
@@ -17,12 +22,6 @@ impl ByteScanner {
 
     pub fn peek(&mut self) -> Option<u8> {
         self.data.get(self.pointer).map(|f| f.clone())
-    }
-
-    fn rollback(&mut self){
-        if self.pointer>0{
-            self.pointer-=1;
-        }
     }
 
     pub fn read_byte(&mut self) -> Option<u8> {
@@ -41,7 +40,6 @@ impl ByteScanner {
             let chr = char::from(x);
             // break when entering *any* whitespace or control.
             if chr.is_ascii_whitespace() || chr.is_ascii_control() {
-                self.rollback();
                 break;
             }
 
@@ -112,15 +110,8 @@ pub struct ByteScannerScriptBinder {
     err: Vec<String>,
 }
 
-impl ByteScannerScriptBinder {
-    pub fn new(scanner: ByteScanner) -> Self {
-        Self {
-            scanner,
-            err: Vec::new(),
-        }
-    }
-
-    pub fn bind_to(engine: &mut Engine) -> &mut Engine {
+impl ScriptInject for ByteScannerScriptBinder {
+    fn inject_engine(&self, engine: &mut Engine) {
         engine
             .register_type::<Self>()
             .register_fn("peek", Self::peek)
@@ -134,8 +125,19 @@ impl ByteScannerScriptBinder {
             .register_fn("eeof", Self::eeof)
             .register_fn("estr", Self::estr)
             .register_fn("eint", Self::eint);
+    }
 
-        engine
+    fn inject_scope(self, scope: &mut Scope, key: &'static str) {
+        scope.push(key, self);
+    }
+}
+
+impl ByteScannerScriptBinder {
+    pub fn new(scanner: ByteScanner) -> Self {
+        Self {
+            scanner,
+            err: Vec::new(),
+        }
     }
 
     pub fn get_err(&self) -> Vec<String> {
@@ -175,22 +177,46 @@ impl ByteScannerScriptBinder {
         }
     }
     fn ebyte(&mut self, test: u8) -> bool {
-        self.scanner.expect_byte(test)
+        if !self.scanner.expect_byte(test){
+            self.err.push(format!("expect `{}`.",test));
+            return false;
+        }
+        return true;
     }
     fn espace(&mut self) -> bool {
-        self.scanner.expect_space()
+        if !self.scanner.expect_space(){
+            self.err.push(format!("expect `whitespace`."));
+            return false;
+        }
+        return true;
     }
     fn eeoln(&mut self) -> bool {
-        self.scanner.expect_eoln()
+        if !self.scanner.expect_eoln(){
+            self.err.push(format!("expect `End of Line`."));
+            return false;
+        }
+        return true;
     }
     fn eeof(&mut self) -> bool {
-        self.scanner.expect_eof()
+        if !self.scanner.expect_eof(){
+            self.err.push(format!("expect `End of File`."));
+            return false;
+        }
+        return true;
     }
     fn estr(&mut self, test: &str) -> bool {
-        self.scanner.expect_str(test)
+        if !self.scanner.expect_str(test){
+            self.err.push(format!("expect string `{}`.",test));
+            return false;
+        }
+        return true;
     }
     fn eint(&mut self, test: i64) -> bool {
-        self.rint() == test
+        if self.rint() != test{
+            self.err.push(format!("expect integer `{}`.",test));
+            return false;
+        }
+        return true;
     }
 }
 
@@ -252,13 +278,11 @@ mod tests {
     #[test]
     fn bind_with_script() {
         let mut engine = Engine::new();
-        ByteScannerScriptBinder::bind_to(&mut engine);
-
+        let binder =
+            ByteScannerScriptBinder::new(ByteScanner::from_bytes("1 2".to_string().into_bytes()));
+        binder.inject_engine(&mut engine);
         let mut scope = Scope::new();
-        scope.push(
-            "input",
-            ByteScannerScriptBinder::new(ByteScanner::from_bytes("1 2".to_string().into_bytes())),
-        );
+        binder.inject_scope(&mut scope, "input");
 
         engine
             .eval_with_scope::<bool>(

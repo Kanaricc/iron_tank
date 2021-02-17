@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare},
     compile::CompiledProgram,
-    error::{Error, Result},
+    error::Result,
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
     lint::DataLinter,
     JudgeResult,
@@ -67,14 +67,20 @@ pub struct ProblemConfig<'a> {
     pub limit_config: LimitConfig,
     #[serde(rename = "judgeMode")]
     pub judge_mode: JudgeModeConfig,
-    pub lint: Option<DataLinter<'a>>,
+    #[serde(rename = "inputLint")]
+    pub input_lint: Option<DataLinter<'a>>,
+    #[serde(rename = "answerLint")]
+    pub answer_lint: Option<DataLinter<'a>>,
     pub cases: Vec<CaseConfig>,
 }
 
 impl<'a> ProblemConfig<'a> {
     fn from_string(content: &str) -> Result<Self> {
         let mut v: Self = serde_yaml::from_str(&content).unwrap();
-        if let Some(lint)=&mut v.lint{
+        if let Some(lint) = &mut v.input_lint {
+            lint.init()?;
+        }
+        if let Some(lint) = &mut v.answer_lint {
             lint.init()?;
         }
         Ok(v)
@@ -92,7 +98,8 @@ impl<'a> ProblemConfig<'a> {
         Ok(v)
     }
 
-    fn check_valid(&self) -> Result<()> {
+    pub fn lint_data(&self) -> Result<Vec<String>> {
+        let mut lint_res = vec![];
         for case in self.cases.iter() {
             if !Path::new(&self.find_relative_path(&case.inputfile_path)).exists() {
                 return Err(std::io::Error::new(
@@ -111,16 +118,47 @@ impl<'a> ProblemConfig<'a> {
                 }
             }
 
-            if let Some(lint) = &self.lint {
+            if let Some(lint) = &self.input_lint {
                 let res = lint.check(&fs::read(self.find_relative_path(&case.inputfile_path))?);
                 if res.len() > 0 {
-                    return Err(Error::Data(res.join("\n")));
+                    lint_res.extend(
+                        res.into_iter()
+                            .map(|f| format!("{}: {}", case.inputfile_path, f)),
+                    );
                 }
+            }
+            if let Some(lint) = &self.answer_lint {
                 if let Some(answerfile_path) = &case.answerfile_path {
                     let res = lint.check(&fs::read(self.find_relative_path(answerfile_path))?);
                     if res.len() > 0 {
-                        return Err(Error::Data(res.join("\n")));
+                        lint_res.extend(
+                            res.into_iter()
+                                .map(|f| format!("{}: {}", answerfile_path, f)),
+                        );
                     }
+                }
+            }
+        }
+
+        Ok(lint_res)
+    }
+
+    fn check_valid(&self) -> Result<()> {
+        for case in self.cases.iter() {
+            if !Path::new(&self.find_relative_path(&case.inputfile_path)).exists() {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!("input file `{}` not found", case.inputfile_path),
+                )
+                .into());
+            }
+            if let Some(answerfile_path) = &case.answerfile_path {
+                if !Path::new(&self.find_relative_path(answerfile_path)).exists() {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        format!("answer file `{}` not found", answerfile_path),
+                    )
+                    .into());
                 }
             }
         }
@@ -207,7 +245,8 @@ mod tests {
                 answerfile_path: "out".to_string().into(),
             }],
             path: "../test_dep/problem".into(),
-            lint: None,
+            input_lint: None,
+            answer_lint: None,
         };
         let s = serde_yaml::to_string(&problem).unwrap();
         println!("{}", s);
