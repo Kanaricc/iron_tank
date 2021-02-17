@@ -10,9 +10,9 @@ use tank_core::{
 };
 #[derive(Clap)]
 #[clap(
-    version = "0.2.0",
+    version = "0.3.0",
     name = "Iron Tank",
-    author = "Kanari <iovo7c@gmail.com>",
+    author = "Kanari",
     about = "A fast and reliable judge container wrtten in Rust."
 )]
 struct Opts {
