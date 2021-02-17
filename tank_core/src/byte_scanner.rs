@@ -19,6 +19,12 @@ impl ByteScanner {
         self.data.get(self.pointer).map(|f| f.clone())
     }
 
+    fn rollback(&mut self){
+        if self.pointer>0{
+            self.pointer-=1;
+        }
+    }
+
     pub fn read_byte(&mut self) -> Option<u8> {
         let res = self.data.get(self.pointer).map(|f| f.clone());
         if let Some(_) = res {
@@ -35,6 +41,7 @@ impl ByteScanner {
             let chr = char::from(x);
             // break when entering *any* whitespace or control.
             if chr.is_ascii_whitespace() || chr.is_ascii_control() {
+                self.rollback();
                 break;
             }
 
