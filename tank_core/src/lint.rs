@@ -83,11 +83,10 @@ impl<'a> DataLinter<'a> {
         Ok(())
     }
 
-    pub fn push_custom_lint(&mut self, script: String) {
-        if let None = self.custom_lints {
-            self.custom_lints = Some(Vec::new());
-        }
-        self.custom_lints.as_mut().unwrap().push(script);
+    pub fn push_custom_lint(&mut self, script: String)->Result<()> {
+        self._custom_lints.push(Engine::new().compile(&script)?);
+
+        Ok(())
     }
 
     pub fn load_default_linter(&mut self) {
@@ -268,16 +267,16 @@ mod tests {
         linter.load_default_linter();
         linter.push_custom_lint(
             r#"
-            data.rint();
+            data.ri64();
             data.espace();
-            data.rint();
+            data.ri64();
             data.eeoln();
-            data.rint();
+            data.ri64();
             data.eeof();
             0
                     "#
             .to_string(),
-        );
+        )?;
         assert_eq!(linter.check(&sample).len(), 0);
 
         Ok(())
@@ -292,16 +291,16 @@ mod tests {
         linter.load_default_linter();
         linter.push_custom_lint(
             r#"
-            data.rint();
+            data.ri64();
             data.espace();
-            data.rint();
+            data.ri64();
             data.eeoln();
-            data.rint();
+            data.ri64();
             data.eeof();
             0
                     "#
             .to_string(),
-        );
+        ).unwrap();
         assert_eq!(linter.check(&sample).len(), 0);
     }
 }
