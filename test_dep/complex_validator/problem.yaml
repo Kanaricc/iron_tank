@@ -1,0 +1,26 @@
+name: B
+limitConfig:
+  timeLimit: 1000
+  memoryLimit: 256
+judgeMode:
+  Normal:
+    comparisionMode: Line
+inputLint:
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      let a = data.ri64();
+      data.eeoln();
+      for i in range(0,a){
+        data.ei64(i);
+        data.eeoln();
+      }
+      0
+cases:
+  - inputFile: 1.in
+    answerFile: 1.ans
