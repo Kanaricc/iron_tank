@@ -2,7 +2,7 @@ use crate::{
     byte_scanner::{ByteScanner, ByteScannerScriptBinder, ScriptInject},
     error::{Error, Result},
 };
-use rhai::{Engine, Scope};
+use rhai::{Engine, Scope,AST};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs};
 
@@ -15,11 +15,15 @@ pub const ALL_KEYS: [&str; 5] = [
 ];
 #[derive(Serialize, Deserialize)]
 pub struct DataLinter<'a> {
+    linters: Vec<String>,
     #[serde(skip_serializing, skip_deserializing)]
     _linters: HashMap<&'a str, Box<dyn Fn(&Vec<u8>) -> Vec<String>>>,
-    linters: Vec<String>,
+
     #[serde(rename = "customLints")]
     custom_lints: Option<Vec<String>>,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    _custom_lints:Vec<AST>,
 }
 
 impl<'a> DataLinter<'a> {
@@ -28,23 +32,22 @@ impl<'a> DataLinter<'a> {
             _linters: HashMap::new(),
             linters: linters.into_iter().map(|f| f.to_string()).collect(),
             custom_lints: None,
+            _custom_lints: Vec::new(),
         };
 
-        v.load_default_linter();
-        v.check_config()?;
+        v.init()?;
         Ok(v)
     }
 
     fn from_string(content: &str) -> Result<Self> {
-        let v: Self = serde_yaml::from_str(&content).unwrap();
+        let mut v: Self = serde_yaml::from_str(&content).unwrap();
+        v.init()?;
         Ok(v)
     }
     pub fn from_file(path: &str) -> Result<Self> {
         let content = fs::read_to_string(path).unwrap();
-        let mut v = Self::from_string(&content)?;
-
-        v.load_default_linter();
-        v.check_config()?;
+        let v = Self::from_string(&content)?;
+        
         Ok(v)
     }
 
@@ -53,6 +56,7 @@ impl<'a> DataLinter<'a> {
     pub(crate) fn init(&mut self) -> Result<()> {
         self.load_default_linter();
         self.check_config()?;
+        self.compile_scripts()?;
 
         Ok(())
     }
@@ -64,6 +68,18 @@ impl<'a> DataLinter<'a> {
                 return Err(Error::Argument(format!("unknown linter: {}", key)));
             }
         }
+        Ok(())
+    }
+
+    fn compile_scripts(&mut self) ->Result<()>{
+        let engine=Engine::new();
+        if let Some(sources)=&self.custom_lints{
+            for source in sources.iter(){
+                let t=engine.compile(source)?;
+                self._custom_lints.push(t);
+            }
+        }
+
         Ok(())
     }
 
@@ -155,8 +171,7 @@ impl<'a> DataLinter<'a> {
             res.extend(self._linters.get(key.as_str()).unwrap()(bytes));
         }
 
-        if let Some(custom_lints) = &self.custom_lints {
-            for script in custom_lints {
+            for script in &self._custom_lints {
                 let scanner = ByteScanner::from_bytes(bytes.clone());
                 let binder = ByteScannerScriptBinder::new(scanner);
                 let mut engine = Engine::new();
@@ -164,8 +179,7 @@ impl<'a> DataLinter<'a> {
                 binder.inject_engine(&mut engine);
                 binder.inject_scope(&mut scope, "data");
 
-                // TODO: compile scripts and check error when initializing.
-                engine.eval_with_scope::<i64>(&mut scope, script).unwrap();
+                engine.eval_ast_with_scope::<i64>(&mut scope, script).unwrap();
 
                 let binder: ByteScannerScriptBinder = scope.get_value("data").unwrap();
                 let script_res = binder.get_err();
@@ -173,7 +187,6 @@ impl<'a> DataLinter<'a> {
                     res.extend(script_res.into_iter());
                 }
             }
-        }
 
         res
     }

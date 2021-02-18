@@ -9,6 +9,7 @@ pub enum Error {
     Checker(String),
     Data(String),
     UnexpectedBlockType,
+    Script(rhai::ParseError),
     Judge { judge_name: String, msg: String },
     FromUtf8(string::FromUtf8Error),
     Request(reqwest::Error),
@@ -30,5 +31,11 @@ impl From<string::FromUtf8Error> for Error {
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
         Self::Request(err)
+    }
+}
+
+impl From<rhai::ParseError> for Error{
+    fn from(err: rhai::ParseError) -> Self {
+        Self::Script(err)
     }
 }
