@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use rhai::{Engine, RegisterFn, Scope};
 
@@ -118,13 +118,14 @@ impl ScriptInject for ByteScannerScriptBinder {
             .register_fn("rbyte", Self::rbyte)
             .register_fn("rblock", Self::rblock)
             .register_fn("rstr", Self::rstr)
-            .register_fn("rint", Self::rint)
+            .register_fn("ri64", Self::read::<i64>)
+            .register_fn("rf64", Self::read::<f64>)
             .register_fn("ebyte", Self::ebyte)
             .register_fn("espace", Self::espace)
             .register_fn("eeoln", Self::eeoln)
             .register_fn("eeof", Self::eeof)
             .register_fn("estr", Self::estr)
-            .register_fn("eint", Self::eint);
+            .register_fn("ei64", Self::expect::<i64>);
     }
 
     fn inject_scope(self, scope: &mut Scope, key: &'static str) {
@@ -167,53 +168,54 @@ impl ByteScannerScriptBinder {
             }
         }
     }
-    fn rint(&mut self) -> i64 {
-        match self.scanner.read::<i64>() {
+    fn read<T: FromStr + Default>(&mut self) -> T {
+        match self.scanner.read::<T>() {
             Ok(x) => x,
             Err(err) => {
                 self.err.push(format!("{:?}", err));
-                0
+                T::default()
             }
         }
     }
     fn ebyte(&mut self, test: u8) -> bool {
-        if !self.scanner.expect_byte(test){
-            self.err.push(format!("expect `{}`.",test));
+        if !self.scanner.expect_byte(test) {
+            self.err.push(format!("expect `{}`.", test));
             return false;
         }
         return true;
     }
     fn espace(&mut self) -> bool {
-        if !self.scanner.expect_space(){
+        if !self.scanner.expect_space() {
             self.err.push(format!("expect `whitespace`."));
             return false;
         }
         return true;
     }
     fn eeoln(&mut self) -> bool {
-        if !self.scanner.expect_eoln(){
+        if !self.scanner.expect_eoln() {
             self.err.push(format!("expect `End of Line`."));
             return false;
         }
         return true;
     }
     fn eeof(&mut self) -> bool {
-        if !self.scanner.expect_eof(){
+        if !self.scanner.expect_eof() {
             self.err.push(format!("expect `End of File`."));
             return false;
         }
         return true;
     }
+
     fn estr(&mut self, test: &str) -> bool {
-        if !self.scanner.expect_str(test){
-            self.err.push(format!("expect string `{}`.",test));
+        if !self.scanner.expect_str(test) {
+            self.err.push(format!("expect string `{}`.", test));
             return false;
         }
         return true;
     }
-    fn eint(&mut self, test: i64) -> bool {
-        if self.rint() != test{
-            self.err.push(format!("expect integer `{}`.",test));
+    fn expect<T: FromStr + Default + Eq + Display>(&mut self, test: T) -> bool {
+        if self.read::<T>() != test {
+            self.err.push(format!("expect integer `{}`.", test));
             return false;
         }
         return true;
@@ -288,9 +290,9 @@ mod tests {
             .eval_with_scope::<bool>(
                 &mut scope,
                 r#"
-                input.eint(1);
+                input.ei64(1);
                 input.espace();
-                input.eint(2);
+                input.ei64(2);
                 input.eeof();
                 "#,
             )
