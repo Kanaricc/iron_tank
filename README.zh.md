@@ -4,13 +4,13 @@
 
 [English](./README.md)
 
-Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器。
+Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器。下称 `tank`。
 
 > 所谓评测器，是一种常用于 ICPC、CCPC 等程序设计竞赛中的特殊程序，用于检查比赛选手的代码是否正确（通常情况下将代码视作黑箱，给予输入并对比输出与答案是否相符），并限制和记录代码运行全程中的时间、内存使用情况。
 
 ## 安装
 
-目前，Iron Tank 依赖于 Linux 的一些特性。我并不清楚它能不能在 OS X 或者 FreeBSD 等系统上正常运行。
+目前，`tank` 依赖于 Linux 的一些特性。我并不清楚它能不能在 OS X 或者 FreeBSD 等系统上正常运行。
 
 **暂不支持 Windows**。
 
@@ -28,12 +28,12 @@ Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器�
 3. 在项目下运行命令 `cargo build --release`。
 4. 从目录 `target/release` 下寻找 `iron_tank` 以及 `iron_cell`。
 5. 回到**从预编译版本安装**的第 2 步。
-
-## 使用
-
-### 服务模式
+ 
+## 服务模式
 
 启动服务模式，在该模式下你将得到一个功能完备的评测后端。（WIP）
+
+## 快捷使用
 
 ### 标准评测模式
 
@@ -47,10 +47,10 @@ Iron Tank （期望）是一个使用 Rust 编写的快速且稳定的评测器�
 命令格式：
 
 ```bash
-$ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
+$ tank_cli normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit> -c <compare-mode>
 ```
 
-* `<src>`, 将被运行的用户代码。（目前，你需要事先编译）
+* `<src>`, 将被运行的用户代码。
 * `<input>`, 样例输入文件。
 * `<answer>`, 样例答案文件。
 * `<time-limit>`, 时间限制。（MS）
@@ -61,7 +61,7 @@ $ iron_tank normal <src> -i <input> -a <answer> -t <time-limit> -m <memory-limit
 
 
 ```
-$ iron_tank normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
+$ tank_cli normal ./user_code -i 1.in -a 1.ans -t 1 -m 256 -c line
 ```
 
 #### 评测结果
@@ -157,10 +157,10 @@ language
 命令格式：
 
 ```bash
-$ iron_tank special <exec> -i <input> -c <checker> -t <time-limit> -m <memory-limit>
+$ tank_cli special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
-* `<exec>`，用户代码。
+* `<src>`，用户代码。
 * `<input>`，输入文件。
 * `<checker>`，checker 程序。
 * `<time-limit>`，参照标准模式。
@@ -232,7 +232,7 @@ int main(int argc,char* argv[]){
 命令格式：
 
 ```bash
-$ iron_tank special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
+$ tank_cli special <interactor> <src> -i <input> -t <time-limit> -m <memory-limit>
 ```
 
 #### Interactor
@@ -275,20 +275,11 @@ int main(){
 
 **注意，interactor 必须时刻 flush IO 缓存**。对于用户程序来说也是，你可能有必要告知用户这一点。
 
-### Prefab
 
-通过使用 YAML 文件，你可以预设一个问题项目。
 
-命令格式：
+## 问题项目
 
-```bash
-$ iron_tank prefab <config> <src>
-```
-
-* `<config>`：YAML 设置
-* `<src>`: 源码
-
-虽然 iron_tank 并不规定一个问题项目的具体组织（目前也没有明确提出这个概念），但目前**推荐**这样组织：
+通过使用 YAML 文件，你可以预设一个问题项目。预计这将是 tank 中**问题**的**项目形式**。
 
 1. 创建一个文件夹，名字是问题的标题，保证这个标题和 YAML 里的一致。例如这里，我们设为A。
 2. 在目录下创建 `problem.yaml`。
@@ -296,72 +287,57 @@ $ iron_tank prefab <config> <src>
 `problem.yaml` 的内容形如
 
 ```yaml
-name: A                     # 问题名
-limit_config:
-  time_limit: 1000          # 时间限制 (ms)
-  memory_limit: 256         # 内存限制 (MB)
-judge_mode:                 # 评测模式
-  Normal:                   # 这里用了普通模式
-    comparision_mode: Line  # 按 `Line` 比较
-cases:                      # 你可以添加很多测试点
-  - inputfile_path: 1.in    # 输入和答案文件的路径（*相对于这个配置文件*）
-    answerfile_path: 1.ans
-  - inputfile_path: 2.in
-    answerfile_path: 2.ans
+name: A                       # 问题标题
+limitConfig:
+  time:imit: 1000             # 时间限制 (ms)
+  memory:imit: 256            # 内存限制 (MB)
+judgeMode:                    # 评测模式
+  Normal:                     # 这里使用了普通模式
+    comparisionMode: Line     # 使用按行比较模式
+inputLint:                    # 添加检查器来检查你的数据是否正确
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
+answerLint:
+  linters:
+    - unexpected-bytes
+    - consecutive-empty-lines
+    - start-with-empty-line
+    - extra-spaces-after-lines
+    - consecutive-spaces
+  customLints:
+    - |-
+      data.rint();
+      data.eeof();
+      0
+cases:                        # 为问题准备的测试点
+  - inputfilePath: 1.in       # 目录应相对于本设置文件给出
+    answerfilePath: 1.ans
+  - inputfilePath: 2.in
+    answerfilePath: 2.ans
 ```
 
+`tank` 为问题项目提供
 
-然后，在这个文件夹下准备好对应的输入和输出即可。
+* 数据的规范与检查，用于防止数据出现意外失误。
+* 问题的所有预设参数，你无需在评测时再次指定限制。
+* 多组数据，更加符合一般的评测需求。
 
-#### `judge_mode`
+### 使用预置评测
 
-```yaml
-judge_mode:
-  Normal:
-    comparision_mode: Full/Line/Value
+命令格式：
+
+```bash
+$ tank_cli prefab <config> <src>
 ```
 
-```yaml
-judge_mode:
-  Special:
-    checker: path
-```
-
-```yaml
-judge_mode:
-  Interactive:
-    interactor: path
-    has_input: true/false. input defined in test cases will be provided to *interactor* as argument.
-```
-
-在交互模式下，你仍然需要设置测试用例的输入和输出，即使 interactor 用不到。这会被作为占位符，标志着这道题的测试组数。
-
-## 细节
-
-### 时间和内存限制
-
-
-实际上，用户程序所受到的真正时间、内存限制是大于你给出的设置限制的，我们称它为真实限制。这意味着用户程序在使用了稍微多一点的内存和时间后，仍然不会被杀死。不过，这不会影响最终的评测结果。
-
-评测器在用户程序使用超出限制的时间时，总会给出 TLE 的结果。
-
-评测器在下列情况下会给出 MLE 的结果。
-
-* 用户程序被评测单元杀死，并且内存使用峰值超过了限制。
-* 用户程序被评测单元杀死，并且附带的错误信息与内存申请失败相关。
-* 用户程序正常退出，但是内存使用峰值超过了限制。
-
-
-这里可能有一个潜在的问题。当一个程序还没有碰到设置限制，但是它的下一次内存申请会让它直接碰到真实限制。这种情况下，一旦程序做出了这种内存申请，它就会被立刻杀死，并留下一些类似于 `bad alloc` 的内存申请失败的错误信息。然而它的内存峰值并没有超过设置限制，所以*很有可能*被评测器认为是运行时错误。有些 OJ 的评测器也有这种问题。
-
-### 数据格式
-
-
-**注意你的样例数据格式**。格式不正确的数据引起的错误很难被发现，而且容易造成难以挽回的后果。Iron Tank 计划在今后引入数据格式检查。不过任何时候你都该注意：
-
-* **总是使用 ASCII 或者 UTF-8，包括 checker 给出的输出**。
-* **输出必须以新的空行结束，除非你知道你在做什么**。对于比赛常用的 C/C++ 来讲，`scanf()` 和 `cin` 只会在输入回车时才真的读入数据（对于选手来讲）。不以空行结束，会让用户程序一直等待，最终导致超时。但是有些语言可能就不会在意这一点。如果输入格式对你的问题很重要，你可以忽略这一点。
-
-### 如果有一个程序同时超时而且爆了内存…
-
-结果会被认为是 TLE。
+* `<config>`：YAML 设置
+* `<src>`: 源码
