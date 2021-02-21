@@ -88,56 +88,8 @@ pub enum JudgeStatus {
 #### 比较方法
 
 * `full`。输出必须和答案完全一致，包括回车、空格、制表符等空白字符。
-
-下方的例子被认为是一样的。
-
-```
-I Can EatGlass
-
-```
-
-```
-I Can EatGlass
-
-```
-
 * `line`。首先输出和答案将先被移除开头和结尾的所有空白字符，此后将一一对比二者的每一行内容是否相同，每行最后的空白字符将被忽略。（阅读习惯为从左到右）
-
-下方的例子被认为是一样的。注意，在第二个的字母 `b` 之后有着一些空白字符，而且 `d` 和 `我能` 之间的空行不会被忽略。
-
-
-```
-a b
-d
-
-我能
-吞下玻璃而不伤身体
-```
-
-```
-
-a b   
-d
-
-我能
-吞下玻璃而不伤身体
-
-```
-
 * `value`。输出和答案将被移除所有空白符后再比较。
-
-下方例子被认为是一样的。
-
-```
-PHP
-is
-the best language
-```
-
-```
-PHPisthebest
-language
-```
 
 对于前两种比较方法，评测器可能给出 **PE** 的结果。
 
@@ -146,13 +98,6 @@ language
 * 输入由文件给出。
 * 用户定义一个程序，用于判断用户代码是否给出正确答案。
 * 其他与标准模式一致。
-
-你可能会在下列情况下使用这种模式
-
-* 答案不唯一。
-* 必须以输出作为输入来主动检查结果是否正确。
-* 其他标准模式无法事先的情况。
-* （这不是交互模式）
 
 命令格式：
 
@@ -169,26 +114,6 @@ $ tank_cli special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
 #### Checker
 
 Checker 应该接收提供给用户代码的输入、来自用户代码的输出，并且给出检查结果。
-
-你的 Checker 会在 `argv`（对于 C 系程序来讲）种接收到 2 个参数。
-
-* ~~用户代码~~
-* 输入文件位置，内容与用户程序的输入一致。
-* 输出文件位置，内容为用户程序的输出。
-
-Checker 必须给出下列格式的输出。
-
-```
-<result>
-<msg>
-```
-
-* `<result>`: `same` -> Accepted, `different` -> WrongAnswer, `presentation_different` -> PresentationError.
-* `<msg>`: 你想输出的提示。
-
-注意，MLE、TLE、RE以及其他的结果仍然由评测器给出。
-
-目前，请确保你的 Checker 完全可以信任，评测器还没有将 Checker 也放入容器运行。
 
 下方是一个 checker 的例子。
 
@@ -223,12 +148,6 @@ int main(int argc,char* argv[]){
 
 一句话说，`interactor` 和用户程序被直接联系在一起，它们能够即时地对对方的动作作出反应。
 
-这个模式一般用在
-
-* 下一个输入需要依据用户的上一条输出得到。
-* 你想根据用户的输出来调整输入策略，精准打击 Ta 们的算法，为他们准备一份大礼。
-* （你总能遇见需要这种功能的场景。）
-
 命令格式：
 
 ```bash
@@ -240,14 +159,6 @@ $ tank_cli special <interactor> <src> -i <input> -t <time-limit> -m <memory-limi
 `interactor`（交互器） 是一个特殊的程序，它的输入（stdin）和输出（stdout）会被「直接」和用户程序连接。
 
 `interactor` 通过标准错误流（stderr）和评测器沟通。你应该输出
-
-```
-<result>
-[msg]
-```
-
-* `<result>`: same -> Accepted, different -> WrongAnswer, presentation_different -> PresentationError.
-* `[msg]`: 一点信息，随便都行，也可以不要。
 
 一个 interactor 的例子。
 
@@ -272,10 +183,6 @@ int main(){
     return 0;
 }
 ```
-
-**注意，interactor 必须时刻 flush IO 缓存**。对于用户程序来说也是，你可能有必要告知用户这一点。
-
-
 
 ## 问题项目
 
@@ -331,13 +238,21 @@ cases:                        # 为问题准备的测试点
 * 问题的所有预设参数，你无需在评测时再次指定限制。
 * 多组数据，更加符合一般的评测需求。
 
-### 使用预置评测
+## Lint
 
-命令格式：
+通过问题项目，你可以设置对问题数据的 lint 规则。
+
+此后可以使用命令
 
 ```bash
-$ tank_cli prefab <config> <src>
+$ tank_cli lint <config>
 ```
 
-* `<config>`：YAML 设置
-* `<src>`: 源码
+来执行对某个项目的检查。
+
+## 语言支持
+
+| 编译器  | 命令                          |
+| ------- | ----------------------------- |
+| g++     | `g++ <input> -o <output> -O2` |
+| Python3 | `python3 <src>`               |

@@ -90,55 +90,8 @@ pub enum JudgeStatus {
 #### Comparation Mode
 
 * `full`. Output must be the absolutely same with Answer, including blank characters.
-
-They are the same.
-
-```
-I Can EatGlass
-
-```
-
-```
-I Can EatGlass
-
-```
-
 * `line`. Output and Answer are trimmed firstly to remove the blank chars at the beginning and ending position of them. Then comparison are held on each line of them, ignoring blank chars at the ending position. (Output are readed from left to right.)
-
-They are the same. Attention that there are some blank chars after `b` in latter one, and the empty space between `d` and `我能` cannot be ignored.
-
-```
-a b
-d
-
-我能
-吞下玻璃而不伤身体
-```
-
-```
-
-a b   
-d
-
-我能
-吞下玻璃而不伤身体
-
-```
-
 * `value`. Output and Answer are compared without any blank chars.
-
-They are the same.
-
-```
-PHP
-is
-the best language
-```
-
-```
-PHPisthebest
-language
-```
 
 Status `PE` may appear when comparison mode is set to the first or second one.
 
@@ -146,12 +99,6 @@ Status `PE` may appear when comparison mode is set to the first or second one.
 
 * Input is readed from file.
 * A user-defined checker is used to check if program gives correct output.
-
-This mode is used when
-
-* There are many possible correct answers.
-* Output should be checked in real-time.
-* Other situation that normal mode cannot fit.
 
 Command pattern:
 
@@ -169,27 +116,7 @@ $ tank_cli special <checker> <src> -i <input> -t <time-limit> -m <memory-limit>
 
 A checker will receive input, output of the program, and give the result of comparison.
 
-Two arguments are provided for the checker passing by `argv`:
-
-* ~~source code file~~
-* input file, which is the same as the one for program.
-* output file, containing the output of program.
-
-Checker should give output in pattern:
-
-```
-<result>
-<msg>
-```
-
-* `<result>`: same -> Accepted, different -> WrongAnswer, presentation_different -> PresentationError.
-* `<msg>`: whatever you want.
-
-MLE, TLE, RE, and other kinds of status are still given by Iron Tank.
-
-For now, make sure your checker is fully tested, as Iron Tank has not run it in container, which means checker's crashing downs the whole judge process too.
-
-A checker sample:
+For example:
 
 ```cpp
 #include <iostream>
@@ -222,12 +149,6 @@ int main(int argc,char* argv[]){
 
 In short, `interactor` and user program are *directly* connected, they can interact in real-time.
 
-This mode is used when
-
-* The next input comes from previous output.
-* You want to choose the most powerful strategy to make things difficult for the user based on its output.
-* (You'll find a way to use it.)
-
 Command pattern:
 
 ```bash
@@ -237,16 +158,6 @@ $ tank_cli special <interactor> <src> -i <input> -t <time-limit> -m <memory-limi
 #### Interactor
 
 An `interactor` is a program, output and input of which will be connected to the input and output of user program.
-
-`interactor` should put the result in stderr.
-
-```
-<result>
-[msg]
-```
-
-* `<result>`: same -> Accepted, different -> WrongAnswer, presentation_different -> PresentationError.
-* `[msg]`: whatever you want. It is ok to ignore it.
 
 For example,
 
@@ -272,9 +183,6 @@ int main(){
     return 0;
 }
 ```
-
-**MAKE SURE the interactor always flushes its IO buffers!** It is also important to notice users about that.
-
 
 ### Prefab
 
@@ -377,5 +285,4 @@ $ tank_cli lint <config>
 | Compiler | command                       |
 | -------- | ----------------------------- |
 | g++      | `g++ <input> -o <output> -O2` |
-
-## Details
+| Python3  | `python3 <src>`               |
