@@ -1,41 +1,30 @@
 use std::string;
+use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
+#[derive(Debug,Error)]
 pub enum Error {
-    IO(std::io::Error),
+    #[error("entity `{0}` not found")]
+    NotFound(String),
+    #[error("failed in IO")]
+    IO(#[from] std::io::Error),
+    #[error("argument provided is error")]
     Argument(String),
-    Checker(String),
+    #[error("checker error")]
+    UserProgram(String),
+    #[error("data error")]
     Data(String),
+    #[error("script read an invalid block")]
     UnexpectedBlockType,
-    Script(rhai::ParseError),
+    #[error("script error")]
+    Script(#[from] rhai::ParseError),
+    #[error("judge error")]
     Judge { judge_name: String, msg: String },
-    FromUtf8(string::FromUtf8Error),
-    Request(reqwest::Error),
+    #[error("bytes is not in UTF8")]
+    FromUtf8(#[from] string::FromUtf8Error),
+    #[error("network error")]
+    Request(#[from] reqwest::Error),
+    #[error("environment error")]
     Environment(String),
-}
-
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Self::IO(err)
-    }
-}
-
-impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Self {
-        Self::FromUtf8(err)
-    }
-}
-
-impl From<reqwest::Error> for Error {
-    fn from(err: reqwest::Error) -> Self {
-        Self::Request(err)
-    }
-}
-
-impl From<rhai::ParseError> for Error{
-    fn from(err: rhai::ParseError) -> Self {
-        Self::Script(err)
-    }
 }

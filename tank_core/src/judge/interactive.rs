@@ -253,13 +253,13 @@ impl Judge for InteractiveJudge {
 
         if let JudgeStatus::Uncertain = judge_status {
             if interactor_errout.len() <= 0 {
-                return Err(Error::Checker("interactor gives no response".into()));
+                return Err(Error::UserProgram("interactor gives no response".into()));
             }
             judge_status = match interactor_errout[0] {
                 "same" => JudgeStatus::Accept,
                 "different" => JudgeStatus::WrongAnswer,
                 "pattern_different" => JudgeStatus::PresentationError,
-                _ => Err(Error::Checker("interactor gives unknown result".into()))?,
+                _ => Err(Error::UserProgram("interactor gives unknown result".into()))?,
             }
         }
 

@@ -128,7 +128,7 @@ impl Judge for SpecialJudge {
                 "same" => JudgeStatus::Accept,
                 "different" => JudgeStatus::WrongAnswer,
                 "pattern_different" => JudgeStatus::PresentationError,
-                _ => Err(Error::Checker("checker gives unknown result".into()))?,
+                _ => Err(Error::UserProgram("checker gives unknown result".into()))?,
             }
         }
 

@@ -1,7 +1,7 @@
 
 use std::{fs, path::Path};
 
-use crate::error::Result;
+use crate::error::{Error,Result};
 
 pub struct ProcessProbe {
     pid: u32,
@@ -12,8 +12,7 @@ impl ProcessProbe {
         let proc_path = format!("/proc/{}", pid);
         let path = Path::new(&proc_path);
         if !path.exists() {
-            let err = std::io::Error::new(std::io::ErrorKind::NotFound, "process does not exists");
-            return Err(err.into());
+            return Err(Error::NotFound(format!("process {}",pid)));
         }
         Ok(Self { pid })
     }

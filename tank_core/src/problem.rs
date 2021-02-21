@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     compare::{ComparisionMode, GlobalCompare, LineCompare, ValueCompare},
     compile::CompiledProgram,
-    error::Result,
+    error::{Error, Result},
     judge::{launch_interactive_case_judge, launch_normal_case_judge, launch_special_case_judge},
     lint::DataLinter,
     JudgeResult,
@@ -102,19 +102,11 @@ impl<'a> ProblemConfig<'a> {
         let mut lint_res = vec![];
         for case in self.cases.iter() {
             if !Path::new(&self.find_relative_path(&case.inputfile_path)).exists() {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    format!("input file `{}` not found", case.inputfile_path),
-                )
-                .into());
+                return Err(Error::NotFound(case.inputfile_path.to_string()));
             }
             if let Some(answerfile_path) = &case.answerfile_path {
                 if !Path::new(&self.find_relative_path(answerfile_path)).exists() {
-                    return Err(std::io::Error::new(
-                        std::io::ErrorKind::NotFound,
-                        format!("answer file `{}` not found", answerfile_path),
-                    )
-                    .into());
+                    return Err(Error::NotFound(answerfile_path.to_string()));
                 }
             }
 
@@ -146,30 +138,18 @@ impl<'a> ProblemConfig<'a> {
     fn check_valid(&self) -> Result<()> {
         for case in self.cases.iter() {
             if !Path::new(&self.find_relative_path(&case.inputfile_path)).exists() {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    format!("input file `{}` not found", case.inputfile_path),
-                )
-                .into());
+                return Err(Error::NotFound(case.inputfile_path.to_string()));
             }
             if let Some(answerfile_path) = &case.answerfile_path {
                 if !Path::new(&self.find_relative_path(answerfile_path)).exists() {
-                    return Err(std::io::Error::new(
-                        std::io::ErrorKind::NotFound,
-                        format!("answer file `{}` not found", answerfile_path),
-                    )
-                    .into());
+                    return Err(Error::NotFound(answerfile_path.to_string()));
                 }
             }
         }
 
         if let JudgeModeConfig::Special { checker } = &self.judge_mode {
             if !Path::new(&self.find_relative_path(checker)).exists() {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    format!("checker `{}` not found", checker),
-                )
-                .into());
+                    return Err(Error::NotFound(checker.to_string()));
             }
         }
 

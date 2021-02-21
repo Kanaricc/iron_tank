@@ -2,13 +2,16 @@ mod interactive;
 mod normal;
 mod special;
 
-use std::{
-    fs,
-    path::Path,
-};
+use std::{fs, path::Path};
 
 use self::{interactive::InteractiveJudge, normal::NormalJudge, special::SpecialJudge};
-use crate::{JudgeResult, compare::ComparisionMode, compile::CompiledProgram, problem::{ComparisionModeConfig, LimitConfig}, error::Result};
+use crate::{
+    compare::ComparisionMode,
+    compile::CompiledProgram,
+    error::{Error, Result},
+    problem::{ComparisionModeConfig, LimitConfig},
+    JudgeResult,
+};
 
 pub trait Judge {
     fn judge(self) -> Result<JudgeResult>;
@@ -26,11 +29,7 @@ pub fn launch_normal_case_judge(
     let answer_file_path = Path::new(answer_file);
 
     if !path.exists() || !input_file_path.exists() || !answer_file_path.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "code, input or answer not found",
-        )
-        .into());
+        return Err(Error::NotFound(format!("code, input or answer file")));
     }
 
     let input = fs::read_to_string(input_file_path)?;
@@ -62,11 +61,7 @@ pub fn launch_special_case_judge(
     let checker_path = Path::new(checker);
 
     if !path.exists() || !input_file_path.exists() || !checker_path.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "code, input or checker not found",
-        )
-        .into());
+        return Err(Error::NotFound(format!("code, input or checker file")));
     }
 
     let input = fs::read_to_string(input_file_path)?;
@@ -94,21 +89,13 @@ pub fn launch_interactive_case_judge(
     let interactor_path = Path::new(interactor);
 
     if !path.exists() || !interactor_path.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "code, input or interactor not found",
-        )
-        .into());
+        return Err(Error::NotFound(format!("code, input or interactor file")));
     }
 
     let input = if let Some(input_file) = input_file {
         let input_file_path = Path::new(&input_file);
         if !input_file_path.exists() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "code, input or interactor not found",
-            )
-            .into());
+            return Err(Error::NotFound(input_file.to_string()));
         }
 
         Some(fs::read_to_string(input_file_path)?)
