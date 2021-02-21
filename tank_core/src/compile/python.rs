@@ -53,7 +53,7 @@ impl CompilerDescriptor for CompilerPython{
 
 impl Compiler for CompilerPython {
     fn compile(&self, src: String) -> super::CompileResult {
-        let code_path = self.temp_dir.path().join("src.cpp");
+        let code_path = self.temp_dir.path().join("src.py");
 
         {
             let mut file = File::create(&code_path).unwrap();

@@ -189,18 +189,22 @@ fn compile(file:&str)->(Box<dyn Compiler>,CompiledProgram){
     let src=fs::read_to_string(path.canonicalize().unwrap()).unwrap();
     let extension=path.extension().unwrap().to_str().unwrap();
 
-    let compiler;
+    let compiler:Box<dyn Compiler>;
     let result;
     match extension {
         _ if compile::gpp::CompilerGPP::support_sufix().contains(&extension)=>{
-            compiler=compile::gpp::CompilerGPP::new().unwrap();
+            compiler=Box::new(compile::gpp::CompilerGPP::new().unwrap());
+            result=compiler.compile(src);
+        }
+        _ if compile::python::CompilerPython::support_sufix().contains(&extension)=>{
+            compiler=Box::new(compile::python::CompilerPython::new().unwrap());
             result=compiler.compile(src);
         }
         _=>unimplemented!()
     }
 
     if let CompileResult::OK(program)=result{
-        return (Box::new(compiler),program);
+        return (compiler,program);
     }else{
         panic!("failed to compile file `{}`: {:#?}",file,result);
     }
