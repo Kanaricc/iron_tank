@@ -147,6 +147,28 @@ unsafe fn load_minimum_rules(ctx: *mut c_void) {
             SYS_arch_prctl,
             SYS_exit_group,
             // SYS_openat,
+            SYS_set_tid_address,
+            SYS_set_robust_list,
+            SYS_rt_sigaction,
+            SYS_rt_sigprocmask,
+            SYS_prlimit64,
+            SYS_futex,
+            SYS_readlink,
+            SYS_readlinkat,
+            SYS_getrandom,
+            SYS_sysinfo,
+            SYS_sigaltstack,
+            SYS_getdents,
+            SYS_getdents64,
+            SYS_fcntl,
+            SYS_ioctl,
+            SYS_dup,
+            SYS_geteuid,
+            SYS_getuid,
+            SYS_getegid,
+            SYS_getgid,
+            SYS_lstat,
+            SYS_exit_group,
         ],
     );
 
@@ -158,9 +180,9 @@ unsafe fn load_minimum_rules(ctx: *mut c_void) {
         1,
         scmp_arg_cmp {
             arg: 2,
-            op: scmp_compare::SCMP_CMP_EQ,
-            datum_a: (libc::O_RDONLY | libc::O_CLOEXEC) as u64,
-            datum_b: 0,
+            op: scmp_compare::SCMP_CMP_MASKED_EQ,
+            datum_a: libc::O_RDONLY as u64,
+            datum_b: libc::O_RDONLY as u64,
         },
     );
 
@@ -172,9 +194,9 @@ unsafe fn load_minimum_rules(ctx: *mut c_void) {
         1,
         scmp_arg_cmp {
             arg: 1,
-            op: scmp_compare::SCMP_CMP_EQ,
-            datum_a: (libc::O_RDONLY | libc::O_CLOEXEC) as u64,
-            datum_b: 0,
+            op: scmp_compare::SCMP_CMP_MASKED_EQ,
+            datum_a: libc::O_RDONLY  as u64,
+            datum_b: libc::O_RDONLY  as u64,
         },
     );
 }
